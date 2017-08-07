@@ -1,0 +1,24 @@
+module Routes
+
+type IntPath = PrintfFormat<(int -> string),unit,string,string,int>
+
+let index = "/"
+let materials = "/materials"
+
+let login = "/login"
+let logout = "/logout"
+let register = "/register"
+
+let directory = "/directory"
+let profile : IntPath = "/profile/%d"
+
+module Account =
+    let private prefix = "/account"
+    let myTests = prefix + "/tests"
+    let myAccount = prefix + "/details"
+
+module Tests =
+    let private prefix = "/test"
+    let AR = prefix + "/AR"
+    let SR = prefix + "/SR"
+    let HR = prefix + "/HR"
