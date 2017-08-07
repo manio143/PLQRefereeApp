@@ -22,3 +22,22 @@ module Tests =
     let AR = prefix + "/AR"
     let SR = prefix + "/SR"
     let HR = prefix + "/HR"
+
+
+open Suave
+
+let withParam (key,value) path = sprintf "%s?%s=%s" path key value
+
+
+let redirectWithReturnPath redirection =
+    request (fun x ->
+        let path = x.url.AbsolutePath
+        Redirection.FOUND (redirection |> withParam ("returnPath", path)))
+
+let returnPathOrHome = 
+    request (fun x -> 
+        let path = 
+            match (x.queryParam "returnPath") with
+            | Choice1Of2 path -> path
+            | _ -> index
+        Redirection.FOUND path)
