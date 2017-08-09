@@ -6,6 +6,8 @@ open Suave.Cookie
 open Suave.State.CookieStateStore
 open Suave.Operators
 
+open Session
+
 (* remove Session Cookies *)
 let reset =
     unsetPair SessionAuthCookie
@@ -20,3 +22,9 @@ let loggedOn action =
         (fun () -> Choice2Of2(Routes.redirectWithReturnPath Routes.login))
         (fun _ -> Choice2Of2 reset)
         action
+
+let loggedAdmin action =
+    loggedOn (session (function
+        | LoggedIn (user, _, _) -> if user.IsAdmin() then action
+                                   else Views.Forbidden
+        | _ -> Views.Unauthorized ))
