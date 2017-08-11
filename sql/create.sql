@@ -1,0 +1,5 @@
+CREATE TABLE User (
+    id INT NOT NULL PRIMARY KEY,
+    email VARCHAR(128) NOT NULL,
+    passphrase VARCHAR(64) NOT NULL
+)

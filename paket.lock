@@ -1,10 +1,13 @@
 RESTRICTION: == net462
 NUGET
   remote: https://www.nuget.org/api/v2
+    BCrypt-Official (0.1.109)
     FAKE (4.63)
     FSharp.Core (4.0.0.1) - redirects: force
+    SQLProvider (1.1.6)
     Suave (2.1.1)
       FSharp.Core (>= 4.0.0.1)
     Suave.Experimental (2.1.1)
       FSharp.Core (>= 4.0.0.1)
       Suave (>= 2.1.1)
+    System.Data.SQLite.Core (1.0.105.2)

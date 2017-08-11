@@ -3,7 +3,6 @@ module Domain
 type User =
     {
         Id : int
-        Username : string
         Email : string
         Administrator : bool
     }
