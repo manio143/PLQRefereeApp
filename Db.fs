@@ -17,7 +17,8 @@ type SqlProvider = SqlDataProvider<
                     Common.DatabaseProviderTypes.SQLITE,
                     ConnectionString = connectionString,
                     ResolutionPath = resolutionPath,
-                    CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL>
+                    CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL,
+                    UseOptionTypes = true>
 
 let db = SqlProvider.GetDataContext()
 
@@ -69,3 +70,45 @@ let verifyUser email password =
 
 let getTest id =
     {Id = 0; Questions = [||]; Answers = [||]; StartedTime = None; FinishedTime = None; User = (getUser id).Value}
+
+let getSessionDbObj sessionId =
+    query {
+        for session in db.Main.Session do
+        where (session.SessionId = sessionId)
+        select session
+    } |> Seq.first
+
+let removeOldSessions () =
+    query {
+        for session in db.Main.Session do
+        where (session.Expires <= System.DateTime.Now)
+        select session
+    } |> Seq.iter (fun s -> s.Delete())
+    db.SubmitUpdates()
+
+let getSession sessionId =
+    removeOldSessions()
+    let ses = getSessionDbObj sessionId
+    match ses with
+    | None -> None
+    | Some ses ->
+        match ses.UserId with
+        | Some usr ->
+            Some(LoggedIn(ses.SessionId, (getUser usr).Value, ses.Csrftoken, Option.map getTest ses.TestId))
+        | None -> Some(NotLoggedIn(ses.SessionId, ses.Csrftoken))
+let saveSession (session:Session) =
+    removeOldSessions()
+    let tomorrow = System.DateTime.Now.AddHours(12.0)
+    match getSessionDbObj session.SessionId with
+    | Some ses ->
+        ses.Csrftoken <- session.Csrf
+        ses.Expires <- tomorrow
+    | None ->
+        let ses = db.Main.Session.Create()
+        ses.SessionId <- session.SessionId
+        ses.Csrftoken <- session.Csrf
+        ses.Expires <- tomorrow
+        if session.User.IsSome then ses.UserId <- Some session.User.Value.Id
+        if session.Test.IsSome then ses.TestId <- Some session.Test.Value.Id
+    db.SubmitUpdates()
+        

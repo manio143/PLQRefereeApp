@@ -19,7 +19,7 @@ module Login =
     open Authentication
     let page = 
         choose [
-            GET >=> withCSRF (fun csrf -> OK (sprintf "<p>Login</p><input type=\"hidden\" name=\"csrftoken\" value=\"%s\">" csrf))
+            GET >=> withCSRF (fun csrf -> OK (sprintf "<p>Login</p><form method=\"POST\"><input type=\"submit\" value=\"Submit\"><input type=\"hidden\" name=\"csrftoken\" value=\"%s\"></form>" csrf))
             POST <| request (fun httpCtx ->
                         let email = postData httpCtx "email"
                         let password = postData httpCtx "password" 
@@ -29,7 +29,7 @@ module Login =
         ]
     let reset =
         request (fun r ->
-            reset >=> Routes.returnPathOrHome)
+            Cookies.removeSessionCookie >=> Routes.returnPathOrHome)
 
 module Register =
     open Authentication

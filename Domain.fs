@@ -38,3 +38,27 @@ type Test =
             match this.FinishedTime, this.StartedTime with
             | Some x, Some y -> x - y
             | _ -> System.TimeSpan()
+
+
+type CSRF = string
+type SessionId = string
+type Session =
+    | NotLoggedIn of SessionId * CSRF
+    | LoggedIn of SessionId * User * CSRF * Test option
+    with
+        member this.Csrf =
+            match this with
+            | NotLoggedIn (_, csrf) -> csrf
+            | LoggedIn (_, _, csrf, _) -> csrf
+        member this.SessionId =
+            match this with
+            | NotLoggedIn (id, _) -> id
+            | LoggedIn (id, _, _, _) -> id
+        member this.User =
+            match this with
+            | NotLoggedIn _ -> None
+            | LoggedIn (_, user, _, _) -> Some user
+        member this.Test =
+            match this with
+            | NotLoggedIn _ -> None
+            | LoggedIn (_, _, _, test) -> test

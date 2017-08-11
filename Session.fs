@@ -1,83 +1,89 @@
 module Session
 
-type CSRF = string
-let createCSRF () : CSRF =
-    let g = System.Guid.NewGuid()
-    let sha = System.Security.Cryptography.SHA1.Create()
-    System.Convert.ToBase64String <| sha.ComputeHash(g.ToByteArray())
-
 open Suave
 open Suave.State.CookieStateStore
 open Suave.Http
 open Suave.Operators
 open Suave.Filters
+open Suave.Logging
 
 open Domain
 open Db
+open Cookies
+open Helpers
 
-type Session =
-    | NotLoggedIn of CSRF
-    | LoggedIn of User * CSRF * Test option
+let createSession user =
+    let sessionId =
+        let bytes = [|for i in 1..128 -> 0uy|]
+        let randomizer = System.Security.Cryptography.RandomNumberGenerator.Create()
+        randomizer.GetBytes(bytes)
+        let str = System.Convert.ToBase64String bytes
+        str.Substring(0, str.Length - 2)
+    let csrfToken = createCSRFToken()
+    match user with
+    | None -> NotLoggedIn (sessionId, csrfToken)
+    | Some usr -> LoggedIn (sessionId, usr, csrfToken, None)
 
 let session (action:Session->WebPart) =
-    statefulForSession
-    >=> context (fun httpContext ->
-            match HttpContext.state httpContext with
-            | None -> 
-                action (NotLoggedIn (createCSRF()))
-            | Some state ->
-                match state.get "userid", state.get "csrf", state.get "testid" with
-                | Some userId, Some csrf, test ->
-                    let newCsrf = createCSRF() (* TODO move this to POST *)
-                    state.set "csrf" newCsrf >=>
-                    action (LoggedIn ((getUser userId).Value, csrf, if test.IsSome then Some(getTest test.Value) else None))
-                | None, Some csrf, _ ->
-                    let newCsrf = createCSRF()
-                    state.set "csrf" newCsrf >=>
-                    action (NotLoggedIn (csrf))
-                | _ ->
-                    let csrf = createCSRF()
-                    state.set "csrf" csrf >=>
-                    action (NotLoggedIn csrf)
+    context (fun httpContext ->
+                debugLog "Activate session" httpContext
+                let withNewSession () =
+                    let session = createSession None
+                    debugLog "  New session created" httpContext
+                    do saveSession session
+                    setSessionCookie session >=> withDebugLog (sprintf "Session: %A" session) >=> action session
+                match getSessionCookie httpContext with
+                | None ->
+                    withNewSession ()
+                | Some sessionCookie ->
+                    match getSession sessionCookie.value with
+                    | None ->
+                        withNewSession ()
+                    | Some session ->
+                        withDebugLog (sprintf "Session: %A" session) >=> action session
             )
-
-let sessionStore withStore =
-    context (fun httpContext -> match HttpContext.state httpContext with
-                                | Some state -> withStore state
-                                | None -> never)
 
 let withSession action = session (fun _ -> action)
 
+let newCsrfToken =
+    session (fun session ->
+                let newCsrf = createCSRFToken ()
+                let session = 
+                    match session with
+                    | NotLoggedIn (id, _) -> NotLoggedIn(id, newCsrf)
+                    | LoggedIn (id, usr, _, test) -> LoggedIn(id, usr, newCsrf, test)
+                saveSession session
+                setSessionCookie session
+            )
+
 let withCSRF action =
-    session (function
-        | NotLoggedIn csrf -> action csrf
-        | LoggedIn (_, csrf, _) -> action csrf)
+    session (function session -> action (session.Csrf))
 
 let validateCSRF csrf = 
     session (fun session ->
-            let _csrf = 
-                match session with
-                | NotLoggedIn ( _csrf) -> _csrf
-                | LoggedIn (_, _csrf, _) -> _csrf
             fun x -> async {
-                if csrf = _csrf then return Some x
+                if csrf = session.Csrf then return Some x
                 else return None
             }
     )
 
 let POST (action:WebPart) httpContext =
     let validateCSRF httpContext =
-        let csrftoken = httpContext.request.fieldData "csrftoken" 
-                        |> function 
-                            | Choice1Of2 (s) -> s 
-                            | _ -> httpContext.request.header "X-CSRF-Token" 
-                                   |> function
-                                      | Choice1Of2 (s) -> s
-                                      | _ -> ""
+        let csrftoken = match getCSRFCookie httpContext with
+                        | Some token -> token.value
+                        | None ->
+                            httpContext.request.fieldData "csrftoken" 
+                            |> function 
+                                | Choice1Of2 (s) -> s 
+                                | _ -> httpContext.request.header "X-CSRF-Token" 
+                                       |> function
+                                          | Choice1Of2 (s) -> s
+                                          | _ -> ""
+        debugLog (sprintf "csrtoken = %s" csrftoken) httpContext
         validateCSRF csrftoken httpContext
     async {
-        let! r = ((POST >=> validateCSRF) httpContext)
+        let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)
         match r with
-        | Some x -> return! action x
-        | None -> return! Views.CSRFValidationFailed httpContext  
+        | Some x -> return! (action >=> newCsrfToken) x
+        | None -> return! (withDebugLog "CSRF validation failed." >=> Views.CSRFValidationFailed >=> newCsrfToken) httpContext
      }
