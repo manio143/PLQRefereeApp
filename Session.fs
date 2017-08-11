@@ -28,11 +28,30 @@ let session (action:Session->WebPart) =
             | Some state ->
                 match state.get "userid", state.get "csrf", state.get "testid" with
                 | Some userId, Some csrf, test ->
-                    action (LoggedIn (getUser userId, csrf, if test.IsSome then Some(getTest test.Value) else None))
+                    let newCsrf = createCSRF() (* TODO move this to POST *)
+                    state.set "csrf" newCsrf >=>
+                    action (LoggedIn ((getUser userId).Value, csrf, if test.IsSome then Some(getTest test.Value) else None))
                 | None, Some csrf, _ ->
+                    let newCsrf = createCSRF()
+                    state.set "csrf" newCsrf >=>
                     action (NotLoggedIn (csrf))
-                | _ -> action (NotLoggedIn (createCSRF()))
+                | _ ->
+                    let csrf = createCSRF()
+                    state.set "csrf" csrf >=>
+                    action (NotLoggedIn csrf)
             )
+
+let sessionStore withStore =
+    context (fun httpContext -> match HttpContext.state httpContext with
+                                | Some state -> withStore state
+                                | None -> never)
+
+let withSession action = session (fun _ -> action)
+
+let withCSRF action =
+    session (function
+        | NotLoggedIn csrf -> action csrf
+        | LoggedIn (_, csrf, _) -> action csrf)
 
 let validateCSRF csrf = 
     session (fun session ->
