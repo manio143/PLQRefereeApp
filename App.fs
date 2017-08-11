@@ -5,6 +5,7 @@ open Suave.Filters
 open Suave.Operators
 open Suave.RequestErrors
 open Suave.Successful
+open Suave.Logging
 
 open Authentication
 open Controllers
@@ -19,7 +20,7 @@ let app =
         path Routes.register >=> Register.page
 
         path Routes.directory >=> Directory.page
-        pathScan Routes.profile (fun id -> Profile.page id)
+        pathScan Routes.profile Profile.page
 
         path Routes.Account.myTests >=> loggedOn Tests.page
         path Routes.Account.myAccount >=> loggedOn Account.page
@@ -36,6 +37,9 @@ let app =
 let serverConfig = 
     let envport = System.Environment.GetEnvironmentVariable "port"
     let port = (if not (isNull envport) then envport else "8000") |> int
-    { defaultConfig with bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ] }
+    { defaultConfig 
+        with
+            bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ]
+            logger = Targets.create Debug [| "Suave" |]}
 
 startWebServer serverConfig app
