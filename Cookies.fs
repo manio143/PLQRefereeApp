@@ -28,13 +28,6 @@ let createCookie name value expires secure httpOnly =
         httpOnly = httpOnly
     }
 
-let createCSRFToken () =
-    let bytes = [|for i in 1..64 -> 0uy|]
-    let randomizer = System.Security.Cryptography.RandomNumberGenerator.Create()
-    randomizer.GetBytes(bytes)
-    let str = System.Convert.ToBase64String bytes
-    str.Substring(0, str.Length - 2)
-
 let createCSRFCookie token =
     let tomorrow = System.DateTime.Now.AddHours(12.0)    
     createCookie csrfTokenCookie token (Some (DateTimeOffset(tomorrow))) SECURE HTTPONLY

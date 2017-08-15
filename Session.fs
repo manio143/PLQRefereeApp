@@ -11,14 +11,10 @@ open Domain
 open Db
 open Cookies
 open Helpers
+open Generators
 
 let createSession user =
-    let sessionId =
-        let bytes = [|for i in 1..128 -> 0uy|]
-        let randomizer = System.Security.Cryptography.RandomNumberGenerator.Create()
-        randomizer.GetBytes(bytes)
-        let str = System.Convert.ToBase64String bytes
-        str.Substring(0, str.Length - 2)
+    let sessionId = createSessionId()
     let csrfToken = createCSRFToken()
     match user with
     | None -> NotLoggedIn (sessionId, csrfToken)
