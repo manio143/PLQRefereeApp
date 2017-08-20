@@ -65,21 +65,18 @@ let validateCSRF csrf =
 
 let POST (action:WebPart) httpContext =
     let validateCSRF httpContext =
-        let csrftoken = match getCSRFCookie httpContext with
-                        | Some token -> token.value
-                        | None ->
-                            httpContext.request.fieldData "csrftoken" 
-                            |> function 
-                                | Choice1Of2 (s) -> s 
-                                | _ -> httpContext.request.header "X-CSRF-Token" 
-                                       |> function
-                                          | Choice1Of2 (s) -> s
-                                          | _ -> ""
+        let csrftoken = httpContext.request.fieldData "csrftoken" 
+                        |> function 
+                            | Choice1Of2 (s) -> s 
+                            | _ -> httpContext.request.header "X-CSRF-Token" 
+                                   |> function
+                                      | Choice1Of2 (s) -> s
+                                      | _ -> ""
         debugLog (sprintf "csrtoken = %s" csrftoken) httpContext
         validateCSRF csrftoken httpContext
     async {
         let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)
         match r with
         | Some x -> return! (action >=> newCsrfToken) x
-        | None -> return! (withDebugLog "CSRF validation failed." >=> Views.CSRFValidationFailed >=> newCsrfToken) httpContext
+        | None -> return! (withDebugLog "CSRF validation failed." >=> Views.CSRFValidationFailed) httpContext
      }

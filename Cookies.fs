@@ -34,7 +34,7 @@ let createCSRFCookie token =
 
 let createSessionCookie (session:Session) =
     let tomorrow = System.DateTime.Now.AddHours(12.0)
-    createCookie sessionCookie session.SessionId (Some (DateTimeOffset(tomorrow))) SECURE HTTPONLY
+    createCookie sessionCookie session.SessionId (Some (DateTimeOffset(tomorrow))) SECURE (not HTTPONLY)
 
 let setSessionCookie (session:Session) =
     let csrfCookie = createCSRFCookie session.Csrf
