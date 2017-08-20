@@ -38,6 +38,7 @@ let returnPathOrHome =
     request (fun x -> 
         let path = 
             match (x.queryParam "returnPath") with
-            | Choice1Of2 path -> path
+            | Choice1Of2 path -> 
+                if path.StartsWith("/") then path else index
             | _ -> index
         Redirection.FOUND path)
