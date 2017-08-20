@@ -13,6 +13,6 @@ let Forbidden = FORBIDDEN "Only for admin"
 
 let CSRFValidationFailed = BAD_REQUEST "The request didn't pass CQRS validation."
 
-
-let loginPage error =
-    DotLiquid.page "login.html" error
+type LoginPageViewModel = {Error : string option; CSRFinput : string}
+let loginPage (viewModel:LoginPageViewModel) =
+    DotLiquid.page "login.html" viewModel

@@ -18,3 +18,6 @@ let withDebugLog (message:string) =
                                 return Some ctx2
                             }
             )
+
+let makeCSRFinput csrftoken =
+    sprintf "<input type=\"hidden\" name=\"csrftoken\" value\"%s\">" csrftoken
