@@ -24,6 +24,8 @@ module Tests =
     let HR = prefix + "/HR"
 
 
+let databaseBackup = "/dbbackup"
+
 open Suave
 
 let withParam (key,value) path = sprintf "%s?%s=%s" path key value

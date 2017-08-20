@@ -31,6 +31,8 @@ let app =
 
         pathRegex "(.*)\.(css|jpg|svg|png|gif|js)" >=> Files.browseHome
 
+        path Routes.databaseBackup >=> loggedAdmin (Files.file "database.sqlite")
+
         Views.NotFound
     ]
 
