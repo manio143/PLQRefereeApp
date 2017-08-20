@@ -1,0 +1,25 @@
+{% extends "main.html" %}
+
+{% block title %}
+<title>Login</title>
+{% endblock %}
+
+{% block content %}
+<h1>Login</h1>
+{% if model %}
+<p style="color: red;">{{ model }}</p>
+{% endif %}
+<form method="POST">
+    <div>
+        <label for="email">Email</label>
+        <input type="text" name="email">
+    </div>
+    <div>
+        <label for="password">Hasło</label>
+        <input type="password" name="password">
+    </div>
+    <div>
+        <button type="submit">Zaloguj</button>
+    </div>
+</form>
+{% endblock %}

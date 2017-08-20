@@ -18,6 +18,11 @@ let loggedOn action =
         | NotLoggedIn _ -> Routes.redirectWithReturnPath Routes.login
         | LoggedIn _ -> action)
 
+let notLoggedOn action =
+    session (function
+        | NotLoggedIn _ -> action
+        | LoggedIn _ -> Routes.returnPathOrHome)
+
 let loggedAdmin action =
     loggedOn (session (function
         | LoggedIn (_, user, _, _) -> if user.IsAdmin() then action

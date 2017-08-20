@@ -19,13 +19,14 @@ module Login =
     open Authentication
     let page = 
         choose [
-            GET >=> withCSRF (fun csrf -> OK (sprintf "<p>Login</p><form method=\"POST\"><input type=\"submit\" value=\"Submit\"><input type=\"hidden\" name=\"csrftoken\" value=\"%s\"></form>" csrf))
-            POST <| request (fun httpCtx ->
+            GET >=> (notLoggedOn <| Views.loginPage None)
+            POST >> notLoggedOn <| request (fun httpCtx ->
                         let email = postData httpCtx "email"
                         let password = postData httpCtx "password" 
                         match Db.verifyUser email password with
                         | Some user -> authenticateUser user
-                        | None -> OK "Invalid login credentials")
+                        | None -> Views.loginPage (Some "Invalid login credentials")
+                    )
         ]
     let reset =
         request (fun r ->
