@@ -25,9 +25,9 @@ let session (action:Session->WebPart) =
                 debugLog "Activate session" httpContext
                 let withNewSession () =
                     let session = createSession None
-                    debugLog "  New session created" httpContext
+                    verboseLog "  New session created" httpContext
                     do saveSession session
-                    setSessionCookie session >=> withDebugLog (sprintf "Session: %A" session) >=> action session
+                    setSessionCookie session >=> withVerboseLog (sprintf "Session: %A" session) >=> action session
                 match getSessionCookie httpContext with
                 | None ->
                     withNewSession ()
@@ -36,7 +36,7 @@ let session (action:Session->WebPart) =
                     | None ->
                         withNewSession ()
                     | Some session ->
-                        withDebugLog (sprintf "Session: %A" session) >=> action session
+                        withVerboseLog (sprintf "Session: %A" session) >=> action session
             )
 
 let withSession action = session (fun _ -> action)
@@ -72,7 +72,7 @@ let POST (action:WebPart) httpContext =
                                    |> function
                                       | Choice1Of2 (s) -> s
                                       | _ -> ""
-        debugLog (sprintf "csrtoken = %s" csrftoken) httpContext
+        verboseLog (sprintf "csrtoken = %s" csrftoken) httpContext
         validateCSRF csrftoken httpContext
     async {
         let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)

@@ -46,10 +46,10 @@ let removeSessionCookie =
 
 let getCSRFCookie httpContext =
     let cookie = httpContext.request.cookies.TryFind csrfTokenCookie
-    debugLog (sprintf "Getting CSRF cookie (%A)" (Option.map (fun c -> c.value) cookie)) httpContext
+    verboseLog (sprintf "Getting CSRF cookie (%A)" (Option.map (fun c -> c.value) cookie)) httpContext
     cookie
 
 let getSessionCookie httpContext =
     let cookie = httpContext.request.cookies.TryFind sessionCookie
-    debugLog (sprintf "Getting session cookie (%A)" (Option.map (fun c -> c.value) cookie)) httpContext
+    verboseLog (sprintf "Getting session cookie (%A)" (Option.map (fun c -> c.value) cookie)) httpContext
     cookie
