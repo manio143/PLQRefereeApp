@@ -65,16 +65,13 @@ let validateCSRF csrf =
 
 let POST (action:WebPart) httpContext =
     let validateCSRF httpContext =
-        let csrftoken = httpContext.request.fieldData "csrftoken" 
-                        |> function 
-                            | Choice1Of2 (s) -> s 
-                            | _ -> httpContext.request.header "X-CSRF-Token" 
-                                   |> function
-                                      | Choice1Of2 (s) -> s
-                                      | _ -> ""
-        verboseLog (sprintf "csrtoken = %s" csrftoken) httpContext
+        let csrftoken = (postData httpContext.request "csrftoken"
+                        >>=> (httpContext.request.header "X-CSRF-Token" |> optionOfChoice)
+                        >>=> Some "").Value
+        verboseLog (sprintf "csrftoken = %s" csrftoken) httpContext
         validateCSRF csrftoken httpContext
     async {
+        verboseLog (sprintf "POST { %s }" (httpContext.request.rawForm |> System.Text.Encoding.UTF8.GetString)) httpContext
         let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)
         match r with
         | Some x -> return! (action >=> newCsrfToken) x
