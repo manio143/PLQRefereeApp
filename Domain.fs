@@ -2,31 +2,34 @@ module Domain
 
 type User =
     {
-        Id : int
+        Id : int64
         Email : string
         Administrator : bool
     }
     with
         member this.IsAdmin () = this.Administrator
 
+type QuestionType = AR | SR | HR
+
 (* Id, correct, contents *)
-type QuestionsAnwser = int * bool * string
+type Answer = 
+    {
+        Id : int64
+        Correct : bool
+        Answer : string
+    }
 
 type Question =
     {
+        Id : int64
         Question : string
-        Answers : QuestionsAnwser array
-    }
-
-type Answer =
-    {
-        Question : Question
-        AnswerId : int
+        Answers : Answer array
+        Type : QuestionType
     }
 
 type Test =
     {
-        Id : int
+        Id : int64
         Questions : Question array
         Answers : Answer array
         StartedTime : System.DateTime option

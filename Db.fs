@@ -25,7 +25,7 @@ let db = SqlProvider.GetDataContext()
 let getUser id =
     query {
         for user in db.Main.User do
-        where (user.Id = id)
+        where (user.Id = Some(id))
         select user
     } |> Seq.first |> Option.map (fun usr -> usr.MapTo<User>())
 
@@ -48,7 +48,7 @@ let registerUser email password =
     if emailExists email then Choice2Of2 "Istnieje już konto o podanym adresie email."
     else
         (* open transaction *)
-        let user = db.Main.User.``Create(email, passphrase)``(email, createPassphrase password)
+        let user = db.Main.User.``Create(administrator, email, passphrase)``(true, email, createPassphrase password)
         db.SubmitUpdates()
         Choice1Of2 user
 
@@ -69,7 +69,7 @@ let verifyUser email password =
     | _, _ -> None
 
 let getTest id =
-    {Id = 0; Questions = [||]; Answers = [||]; StartedTime = None; FinishedTime = None; User = (getUser id).Value}
+    {Id = 0L; Questions = [||]; Answers = [||]; StartedTime = None; FinishedTime = None; User = (getUser id).Value}
 
 let getSessionDbObj sessionId =
     query {
