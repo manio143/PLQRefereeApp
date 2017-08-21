@@ -7,6 +7,8 @@ open Fake
 let buildDir  = "./build/"
 let deployDir = "./deploy/"
 
+let MSBuildDebug outputPath targets projects =
+    MSBuild outputPath targets [ ("Configuration", "Debug"); ("DefineConstants", "DEBUG") ] projects
 
 // Filesets
 let appReferences  =
