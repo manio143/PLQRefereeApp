@@ -30,11 +30,11 @@ let createCookie name value expires secure httpOnly =
 
 let createCSRFCookie token =
     let tomorrow = System.DateTime.Now.AddHours(12.0)    
-    createCookie csrfTokenCookie token (Some (DateTimeOffset(tomorrow))) SECURE HTTPONLY
+    createCookie csrfTokenCookie token (Some (DateTimeOffset(tomorrow))) SECURE (not HTTPONLY)
 
 let createSessionCookie (session:Session) =
     let tomorrow = System.DateTime.Now.AddHours(12.0)
-    createCookie sessionCookie session.SessionId (Some (DateTimeOffset(tomorrow))) SECURE (not HTTPONLY)
+    createCookie sessionCookie session.SessionId (Some (DateTimeOffset(tomorrow))) SECURE HTTPONLY
 
 let setSessionCookie (session:Session) =
     let csrfCookie = createCSRFCookie session.Csrf
