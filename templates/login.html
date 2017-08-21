@@ -6,8 +6,8 @@
 
 {% block content %}
 <h1>Login</h1>
-{% if model %}
-<p style="color: red;">{{ model.Error }}</p>
+{% if model.Error %}
+<p style="color: red;">{{ model.Error.Value }}</p>
 {% endif %}
 <form method="POST">
     <div>

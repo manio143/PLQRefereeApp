@@ -74,6 +74,6 @@ let POST (action:WebPart) httpContext =
         verboseLog (sprintf "POST { %s }" (httpContext.request.rawForm |> System.Text.Encoding.UTF8.GetString)) httpContext
         let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)
         match r with
-        | Some x -> return! (action >=> newCsrfToken) x
+        | Some x -> return! (newCsrfToken >=> action) x
         | None -> return! (withDebugLog "CSRF validation failed." >=> Views.CSRFValidationFailed) httpContext
      }

@@ -21,13 +21,15 @@ module Login =
         choose [
             GET >=> (notLoggedOn <| withCSRF (fun csrf -> 
                 Views.loginPage { Error = None; Csrfinput = makeCSRFinput csrf }))
-            POST >> notLoggedOn <| request (fun httpCtx ->
+            POST << notLoggedOn <| request (fun httpCtx ->
                         let email = postData httpCtx "email"
                         let password = postData httpCtx "password" 
                         match Db.verifyUser email password with
                         | Some user -> authenticateUser user
-                        | None -> withCSRF (fun csrf -> 
+                        | None ->
+                            withCSRF (fun csrf -> 
                             Views.loginPage { Error = Some "Invalid login credentials"; Csrfinput = makeCSRFinput csrf })
+                            >=> withDebugLog "Invalid login credentials"
                     )
         ]
     let reset =
