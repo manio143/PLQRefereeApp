@@ -1,6 +1,6 @@
 FSharp.Core
 SQLProvider
 Suave
-Suave.Experimental
-Suave.DotLiquid
+#Suave.DotLiquid
+DotLiquid
 BCrypt-Official

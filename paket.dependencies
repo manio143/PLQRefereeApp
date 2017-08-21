@@ -4,7 +4,7 @@ nuget FAKE
 nuget FSharp.Core 4.0.0.1 redirects: force
 nuget SQLProvider
 nuget Suave 2.1.1
-nuget Suave.Experimental 2.1.1
-nuget Suave.DotLiquid 2.1.1
+#nuget Suave.DotLiquid 2.0.4
+nuget DotLiquid
 nuget BCrypt-Official
 nuget System.Data.SQLite.Core

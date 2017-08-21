@@ -42,6 +42,7 @@
     <Content Include="LICENSE.txt">
       <Paket>True</Paket>
     </Content>
+    <Compile Include="Suave.DotLiquid.fs" />
     <Compile Include="Domain.fs" />
     <Compile Include="Db.fs" />
     <Compile Include="Routes.fs" />
@@ -123,28 +124,6 @@
       <ItemGroup>
         <Reference Include="Suave">
           <HintPath>packages\Suave\lib\net40\Suave.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.2'">
-      <ItemGroup>
-        <Reference Include="Suave.DotLiquid">
-          <HintPath>packages\Suave.DotLiquid\lib\net40\Suave.DotLiquid.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
-    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.2'">
-      <ItemGroup>
-        <Reference Include="Suave.Experimental">
-          <HintPath>packages\Suave.Experimental\lib\net40\Suave.Experimental.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
