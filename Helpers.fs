@@ -47,3 +47,11 @@ module Logging =
 
 let makeCSRFinput csrftoken =
     sprintf "<input type=\"hidden\" name=\"csrftoken\" value=\"%s\">" csrftoken
+
+module Seq =
+    let unzip seq =
+        let rec unzipper list acc1 acc2 =
+            match list with
+            | (p1, p2) :: tail -> unzipper tail (p1::acc1) (p2::acc2)
+            | [] -> List.rev acc1 |> Seq.ofList, List.rev acc2 |> Seq.ofList
+        unzipper (List.ofSeq seq) [] []

@@ -10,6 +10,13 @@ type User =
         member this.IsAdmin () = this.Administrator
 
 type QuestionType = AR | SR | HR
+let questionType (s:string) =
+    match s with
+    | "ar" | "AR" -> AR
+    | "sr" | "SR" -> SR
+    | "hr" | "HR" -> HR
+    | _ -> raise (System.ArgumentException())
+
 
 (* Id, correct, contents *)
 type Answer = 

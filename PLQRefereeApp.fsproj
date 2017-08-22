@@ -44,10 +44,10 @@
     </Content>
     <Compile Include="Suave.DotLiquid.fs" />
     <Compile Include="Domain.fs" />
+    <Compile Include="Helpers.fs" />
     <Compile Include="Db.fs" />
     <Compile Include="Routes.fs" />
     <Compile Include="Generators.fs" />
-    <Compile Include="Helpers.fs" />
     <Compile Include="Views.fs" />
     <Compile Include="Cookies.fs" />
     <Compile Include="Session.fs" />

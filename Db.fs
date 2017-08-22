@@ -4,6 +4,7 @@ open FSharp.Data.Sql
 open System.Linq
 
 open Domain
+open Helpers
 
 [<Literal>]
 let connectionString = 
@@ -68,8 +69,40 @@ let verifyUser email password =
         | _ -> None
     | _, _ -> None
 
+let getDbAnswer id = 
+    query { 
+        for answ in db.Main.Anwser do
+        where(answ.Id = Some(id))
+        select answ
+    } |> Seq.first
+
+let getQuestionsForTest (dbTest:SqlProvider.dataContext.``main.TestEntity``) =
+    let getAnswer id = (getDbAnswer id).Value
+    let answerMap (a:SqlProvider.dataContext.``main.AnwserEntity``) = a.MapTo<Answer>()
+    let questionMap (q:SqlProvider.dataContext.``main.QuestionEntity``) =
+        {Id = q.Id.Value;
+         Question = q.Question;
+         Type = questionType q.Type; 
+         Answers = q.``main.QuestionsAnswer by id`` 
+                    |> Seq.map (fun x -> x.AnswerId |> getAnswer |> answerMap) 
+                    |> Array.ofSeq}
+    dbTest.``main.TestQuestion by id``
+    |> Seq.map (fun x ->
+        (x.``main.Question by id`` |> Seq.first).Value |> questionMap,
+        (getAnswer (int64 x.AnswerId.Value)) |> answerMap
+    )
 let getTest id =
-    {Id = 0L; Questions = [||]; Answers = [||]; StartedTime = None; FinishedTime = None; User = (getUser id).Value}
+    let test = 
+        query {
+            for test in db.Main.Test do
+                where (test.Id = Some(id))
+                select test
+        } |> Seq.first
+    Option.map (fun (t:SqlProvider.dataContext.``main.TestEntity``) ->
+        let questions, answers = getQuestionsForTest t |> Seq.unzip
+        let user = getUser (t.UserId)
+        {Id = t.Id.Value; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = Some t.Started; FinishedTime = t.Finished; User = user.Value}) test
+
 
 let getSessionDbObj sessionId =
     query {
@@ -94,7 +127,7 @@ let getSession sessionId =
     | Some ses ->
         match ses.UserId with
         | Some usr ->
-            Some(LoggedIn(ses.SessionId, (getUser usr).Value, ses.Csrftoken, Option.map getTest ses.TestId))
+            Some(LoggedIn(ses.SessionId, (getUser usr).Value, ses.Csrftoken, Option.bind getTest ses.TestId))
         | None -> Some(NotLoggedIn(ses.SessionId, ses.Csrftoken))
 let saveSession (session:Session) =
     removeOldSessions()
