@@ -55,3 +55,17 @@ module Seq =
             | (p1, p2) :: tail -> unzipper tail (p1::acc1) (p2::acc2)
             | [] -> List.rev acc1 |> Seq.ofList, List.rev acc2 |> Seq.ofList
         unzipper (List.ofSeq seq) [] []
+
+    (* From http://fssnip.net/16 *)
+    let scramble (sqn : seq<'T>) = 
+        let rnd = System.Random()
+        let rec scramble2 (sqn : seq<'T>) = 
+            let remove y sqn = sqn |> Seq.filter (fun x -> x <> y)
+     
+            seq {
+                if not <| Seq.isEmpty sqn then 
+                    let x = sqn |> Seq.item (rnd.Next(0, sqn |> Seq.length))
+                    yield x
+                    yield! scramble2 (remove x sqn)
+            }
+        scramble2 sqn

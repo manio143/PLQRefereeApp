@@ -77,3 +77,13 @@ let POST (action:WebPart) httpContext =
         | Some x -> return! (newCsrfToken >=> action) x
         | None -> return! (withDebugLog "CSRF validation failed." >=> Views.CSRFValidationFailed) httpContext
      }
+
+let sessionWithTest testOption =
+    session (fun session ->
+                let session = 
+                    match session with
+                    | LoggedIn (id, usr, csrf, _) -> LoggedIn(id, usr, csrf, testOption)
+                    | x -> x
+                saveSession session
+                withDebugLog (sprintf "Saved test to session {%A}" (Option.map (fun t -> t.Id) testOption)) >=>setSessionCookie session
+            )

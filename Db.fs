@@ -78,37 +78,84 @@ let verifyUser email password =
 
 let getDbAnswer id = 
     query { 
-        for answ in db.Main.Anwser do
+        for answ in db.Main.Answer do
         where(answ.Id = Some(id))
         select answ
     } |> Seq.first
 
+let getQuestions (filter:SqlProvider.dataContext.``main.QuestionEntity`` seq -> SqlProvider.dataContext.``main.QuestionEntity`` seq) =
+    let questions = query {
+        for q in db.Main.Question do
+        select q
+    }
+    questions |> filter |> Seq.map (fun q ->
+                            let questionsAnswers = 
+                                query {
+                                    for qa in db.Main.QuestionsAnswer do
+                                        where(qa.QuestionId = q.Id.Value)
+                                        select qa
+                                } |> Seq.map (fun qa -> qa.AnswerId) |> Array.ofSeq
+                            let answers = 
+                                query {
+                                    for a in db.Main.Answer do
+                                        where(questionsAnswers.Contains(a.Id.Value))
+                                        select a
+                                } |> Seq.map (fun a -> a.MapTo<Answer>())
+                            Question (q.Id.Value) (q.Question) (Array.ofSeq answers) (questionType q.Type)
+                         )
+    |> Seq.cache
+
+let getAllQuestions () = getQuestions id
+let getARQuestions () = getQuestions (Seq.filter (fun q -> q.Type.ToUpper() = "AR"))
+let getSRQuestions () = getQuestions (Seq.filter (fun q -> q.Type.ToUpper() = "SR"))
+let getHRQuestions () = getQuestions (Seq.filter (fun q -> q.Type.ToUpper() = "HR"))
+
 let getQuestionsForTest (dbTest:SqlProvider.dataContext.``main.TestEntity``) =
-    let getAnswer id = (getDbAnswer id).Value
-    let answerMap (a:SqlProvider.dataContext.``main.AnwserEntity``) = a.MapTo<Answer>()
-    let questionMap (q:SqlProvider.dataContext.``main.QuestionEntity``) =
-        {Id = q.Id.Value;
-         Question = q.Question;
-         Type = questionType q.Type; 
-         Answers = q.``main.QuestionsAnswer by id`` 
-                    |> Seq.map (fun x -> x.AnswerId |> getAnswer |> answerMap) 
-                    |> Array.ofSeq}
-    dbTest.``main.TestQuestion by id``
-    |> Seq.map (fun x ->
-        (x.``main.Question by id`` |> Seq.first).Value |> questionMap,
-        (getAnswer (int64 x.AnswerId.Value)) |> answerMap
+    query {
+        for tq in db.Main.TestQuestion do
+            where(tq.TestId = dbTest.Id.Value)
+            select tq
+    }
+    |> Seq.map (fun tq ->
+        let question = 
+            getQuestions (Seq.filter (fun q -> q.Id.Value = tq.QuestionId)) 
+            |> Seq.exactlyOne
+        let answer = (getDbAnswer tq.AnswerId.Value).Value.MapTo<Answer>()
+        question, answer
     )
+
+let getDbTest id =
+    query {
+        for test in db.Main.Test do
+            where (test.Id = Some(id))
+            select test
+    } |> Seq.first
+   
 let getTest id =
-    let test = 
-        query {
-            for test in db.Main.Test do
-                where (test.Id = Some(id))
-                select test
-        } |> Seq.first
-    Option.map (fun (t:SqlProvider.dataContext.``main.TestEntity``) ->
+    let test = getDbTest id
+    test |> Option.map (fun (t:SqlProvider.dataContext.``main.TestEntity``) ->
         let questions, answers = getQuestionsForTest t |> Seq.unzip
         let user = getUser (t.UserId)
-        {Id = t.Id.Value; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = Some t.Started; FinishedTime = t.Finished; User = user.Value}) test
+        {Id = t.Id.Value; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = Some t.Started; FinishedTime = t.Finished; User = user.Value})
+
+let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
+    let test = db.Main.Test.Create()
+    test.Started <- System.DateTime.Now
+    test.UserId <- user.Id
+    test.Type <- Some(testType.ToString())
+    do db.SubmitUpdates()
+    for q in questions do
+        let tq = db.Main.TestQuestion.Create()
+        tq.QuestionId <- q.Id
+        tq.TestId <- test.Id.Value
+    done
+    do db.SubmitUpdates()
+    getTest (test.Id.Value)
+
+let startTest (test:Test) =
+    let dbTest = (getDbTest test.Id).Value
+    dbTest.Started <- System.DateTime.Now
+    db.SubmitUpdates()
 
 
 let getSessionDbObj sessionId =
@@ -143,6 +190,8 @@ let saveSession (session:Session) =
     | Some ses ->
         ses.Csrftoken <- session.Csrf
         ses.Expires <- tomorrow
+        if session.Test.IsSome then ses.TestId <- Some session.Test.Value.Id
+        else ses.TestId <- None
     | None ->
         let ses = db.Main.Session.Create()
         ses.SessionId <- session.SessionId

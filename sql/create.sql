@@ -11,7 +11,7 @@ CREATE TABLE Test (
     userId INTEGER NOT NULL,
     started DATETIME NOT NULL,
     finished DATETIME,
-    type VARCHAR(2),
+    type VARCHAR(2) NOT NULL,
     FOREIGN KEY (userId) REFERENCES User(id)
 );
 
@@ -37,10 +37,10 @@ CREATE TABLE UserData (
     FOREIGN KEY(hr) REFERENCES Test(id)    
 );
 
-CREATE TABLE Anwser (
+CREATE TABLE Answer (
     id INTEGER PRIMARY KEY,
     correct BOOLEAN NOT NULL,
-    anwser VARCHAR(512) NOT NULL
+    answer VARCHAR(512) NOT NULL
 );
 
 CREATE TABLE Question (
@@ -61,9 +61,9 @@ CREATE TABLE TestQuestion (
     testId INTEGER NOT NULL,
     questionId INTEGER NOT NULL,
     answerId INTEGER,
-    PRIMARY KEY (questionId, testId),
-    FOREIGN KEY (questionId) REFERENCES Question(id),
+    PRIMARY KEY (testId, questionId),
     FOREIGN KEY (testId) REFERENCES Test(id),
+    FOREIGN KEY (questionId) REFERENCES Question(id),
     FOREIGN KEY (answerId) REFERENCES Answer(id)    
 );
 

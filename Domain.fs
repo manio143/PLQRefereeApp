@@ -11,6 +11,14 @@ type User =
     with
         member this.IsAdmin () = this.Administrator
 
+type QuestionType = AR | SR | HR
+let questionType (s:string) =
+    match s with
+    | "ar" | "AR" -> AR
+    | "sr" | "SR" -> SR
+    | "hr" | "HR" -> HR
+    | _ -> raise (System.ArgumentException())
+
 type UserData =
     {
         Id : int64
@@ -42,13 +50,21 @@ type UserData =
         member this.SRCooldown = this.Srcooldown
         member this.HRCooldown = this.Hrcooldown
 
-type QuestionType = AR | SR | HR
-let questionType (s:string) =
-    match s with
-    | "ar" | "AR" -> AR
-    | "sr" | "SR" -> SR
-    | "hr" | "HR" -> HR
-    | _ -> raise (System.ArgumentException())
+        member this.CanTakeTest testType =
+            match testType with
+             | AR -> 
+                 if this.CanTakeAR then Choice1Of2 true
+                 else if this.HasARCooldown then Choice2Of2 (Some this.ARCooldown)
+                      else Choice1Of2 false
+             | SR -> 
+                 if this.CanTakeSR then Choice1Of2 true
+                 else if this.HasSRCooldown then Choice2Of2 (Some this.SRCooldown)
+                      else Choice1Of2 false
+             | HR -> 
+                 if this.CanTakeHR then Choice1Of2 true
+                 else if this.HasHRCooldown then Choice2Of2 (Some this.HRCooldown)
+                      else if this.HrIrdp then Choice1Of2 false
+                           else Choice2Of2 None
 
 
 (* Id, correct, contents *)
@@ -66,6 +82,7 @@ type Question =
         Answers : Answer array
         Type : QuestionType
     }
+let Question id question answers ``type`` = {Id = id; Question = question; Answers = answers; Type = ``type``}
 
 type Test =
     {

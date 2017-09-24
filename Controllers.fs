@@ -56,7 +56,31 @@ module Tests =
     let page = Views.genericPage "" "Tests"
     
     module TestEnvironment =
-        let page = Views.genericPage "" "Test Environment"
+        let createTest testType user =
+            let questions = match testType with
+                            | AR -> getARQuestions() |> Seq.scramble |> Seq.take 25
+                            | SR -> 
+                                let ar = getARQuestions() |> Seq.scramble |> Seq.take 10 |> Seq.cache
+                                let sr = getSRQuestions() |> Seq.scramble |> Seq.take 15 |> Seq.cache
+                                Seq.append ar sr |> Seq.scramble
+                            | HR -> getHRQuestions() |> Seq.scramble |> Seq.take 50
+            newTest user testType questions
+        let action (req:HttpRequest) =
+            match postData req "test" with
+            | Some testType_ -> 
+                let testType = questionType testType_
+                session (fun sess ->
+                    if sess.User.IsNone then Views.BadRequest
+                    else
+                        let usrData = getUserData sess.User.Value
+                        match usrData.CanTakeTest testType with
+                        | Choice1Of2 true ->
+                            let test = createTest testType sess.User.Value
+                            sessionWithTest test >=> Views.testEnvironment testType
+                        | _ -> Views.BadRequest
+                )
+            | None -> Views.BadRequest
+        let page = request action |> POST
 
     module TestPage =
         open Views
@@ -66,23 +90,9 @@ module Tests =
                 | Some usr ->
                     let usrData = getUserData usr
                     let viewModel = 
-                        let usrCanTakeTest = match testType with
-                                             | AR -> 
-                                                 if usrData.CanTakeAR then Choice1Of2 true
-                                                 else if usrData.HasARCooldown then Choice2Of2 (Some usrData.ARCooldown)
-                                                      else Choice1Of2 false
-                                             | SR -> 
-                                                 if usrData.CanTakeSR then Choice1Of2 true
-                                                 else if usrData.HasSRCooldown then Choice2Of2 (Some usrData.SRCooldown)
-                                                      else Choice1Of2 false
-                                             | HR -> 
-                                                 if usrData.CanTakeHR then Choice1Of2 true
-                                                 else if usrData.HasHRCooldown then Choice2Of2 (Some usrData.HRCooldown)
-                                                      else if usrData.HrIrdp then Choice1Of2 false
-                                                           else Choice2Of2 None
                         let testValue = testType.ToString().ToLower()
                         let link = 
-                            match usrCanTakeTest with
+                            match usrData.CanTakeTest testType with
                             | Choice1Of2 true ->
                                 "<form action='/test' method='POST'><input type='submit' value='Przejdź do testu'>" + (makeCSRFinput sess.Csrf) + "<input type='hidden' name=\"test\" value=\"" + testValue + "\"></form>"
                             | Choice1Of2 false ->

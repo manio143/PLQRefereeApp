@@ -4,6 +4,8 @@ open Suave
 open Suave.Successful
 open Suave.RequestErrors
 
+open System
+
 DotLiquid.setTemplatesDir "./templates"
 
 let NotFound = NOT_FOUND "Not found"
@@ -29,3 +31,12 @@ let testPage (viewModel:TestPageViewModel) =
 type GenericPageViewModel = {Title : string; Content : string}
 let genericPage title content =
     DotLiquid.page "generic.html" {Title = title; Content = content}
+
+type TestEnvironmentViewModel = {TestTitle : string; TestTime : TimeSpan;}
+let testEnvironment (testType:Domain.QuestionType) =
+    let title, time =
+        match testType with
+        | AR -> "Test na sędziego pomocniczego", TimeSpan(0, 20, 0)
+        | SR -> "Test na sędziego zniczowego", TimeSpan(0, 20, 0)
+        | HR -> "Test na sędziego głównego", TimeSpan(0, 35, 0)
+    DotLiquid.page "test.html" {TestTitle = title; TestTime = time}
