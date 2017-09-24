@@ -1,5 +1,7 @@
 module Domain
 
+open System
+
 type User =
     {
         Id : int64
@@ -8,6 +10,37 @@ type User =
     }
     with
         member this.IsAdmin () = this.Administrator
+
+type UserData =
+    {
+        Id : int64
+        Name : string
+        Surname : string
+        Team : string
+        Ar : int option
+        Sr : int option
+        Hr : int option
+        Arcooldown : DateTime option
+        Srcooldown : DateTime option
+        Hrcooldown : DateTime option
+        ArIrdp : bool
+        SrIrdp : bool
+        HrIrdp : bool
+        HrPayment : bool
+    }
+    with
+        member this.CanTakeAR = this.Ar.IsNone && this.Arcooldown.IsNone && (not this.ArIrdp)
+        member this.CanTakeSR = this.Sr.IsNone && this.Srcooldown.IsNone && (not this.SrIrdp)
+        member this.CanTakeHR = this.Hr.IsNone && this.Hrcooldown.IsNone && (not this.HrIrdp) 
+                                && this.HrPayment && (this.Ar.IsSome || this.ArIrdp) && (this.Sr.IsSome || this.SrIrdp)
+
+        member this.HasARCooldown = this.Arcooldown.IsSome
+        member this.HasSRCooldown = this.Srcooldown.IsSome
+        member this.HasHRCooldown = this.Hrcooldown.IsSome
+
+        member this.ARCooldown = this.Arcooldown
+        member this.SRCooldown = this.Srcooldown
+        member this.HRCooldown = this.Hrcooldown
 
 type QuestionType = AR | SR | HR
 let questionType (s:string) =

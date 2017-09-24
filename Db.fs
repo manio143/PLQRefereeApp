@@ -30,6 +30,13 @@ let getUser id =
         select user
     } |> Seq.first |> Option.map (fun usr -> usr.MapTo<User>())
 
+let getUserData (usr:User) =
+    query {
+        for userData in db.Main.UserData do
+        where (userData.Id = Some(usr.Id))
+        select userData
+    } |> Seq.first |> Option.map (fun usrData -> usrData.MapTo<UserData>()) |> fun opt -> opt.Value
+
 let getDbUser email =
     query {
         for user in db.Main.User do
