@@ -9,7 +9,7 @@ CREATE TABLE User (
 CREATE TABLE Test (
     id INTEGER PRIMARY KEY,
     userId INTEGER NOT NULL,
-    started DATETIME NOT NULL,
+    started DATETIME,
     finished DATETIME,
     type VARCHAR(2) NOT NULL,
     FOREIGN KEY (userId) REFERENCES User(id)

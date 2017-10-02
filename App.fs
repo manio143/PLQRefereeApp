@@ -29,6 +29,7 @@ let app =
         path Routes.Tests.SR >=> loggedOn Tests.SR.page
         path Routes.Tests.HR >=> loggedOn Tests.HR.page
         path Routes.Tests.Test >=> POST >=> loggedOn Tests.TestEnvironment.page
+        path Routes.Tests.startTest >=> Tests.TestEnvironment.startTest
 
         pathRegex "(.*)\.(css|jpg|svg|png|gif|js)" >=> Files.browseHome
 
@@ -43,6 +44,8 @@ let serverConfig =
     { defaultConfig 
         with
             bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ]
-            logger = Targets.create Debug [| "Suave" |]}
+            logger = Targets.create Debug [| "Suave" |]
+            homeFolder = Some (System.IO.Directory.GetCurrentDirectory())
+    }
 
 startWebServer serverConfig app

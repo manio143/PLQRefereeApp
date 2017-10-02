@@ -48,6 +48,8 @@ module Logging =
 let makeCSRFinput csrftoken =
     sprintf "<input type=\"hidden\" name=\"csrftoken\" value=\"%s\">" csrftoken
 
+let utf8 = System.Text.Encoding.UTF8.GetString
+
 module Seq =
     let unzip seq =
         let rec unzipper list acc1 acc2 =
@@ -57,8 +59,8 @@ module Seq =
         unzipper (List.ofSeq seq) [] []
 
     (* From http://fssnip.net/16 *)
+    let private rnd = System.Random()
     let scramble (sqn : seq<'T>) = 
-        let rnd = System.Random()
         let rec scramble2 (sqn : seq<'T>) = 
             let remove y sqn = sqn |> Seq.filter (fun x -> x <> y)
      
@@ -69,3 +71,5 @@ module Seq =
                     yield! scramble2 (remove x sqn)
             }
         scramble2 sqn
+
+    let printMap seq = Seq.map (fun o -> printfn "%A" o; o) seq

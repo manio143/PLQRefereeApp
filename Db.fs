@@ -89,12 +89,11 @@ let getQuestions (filter:SqlProvider.dataContext.``main.QuestionEntity`` seq -> 
         select q
     }
     questions |> filter |> Seq.map (fun q ->
-                            let questionsAnswers = 
-                                query {
-                                    for qa in db.Main.QuestionsAnswer do
-                                        where(qa.QuestionId = q.Id.Value)
-                                        select qa
-                                } |> Seq.map (fun qa -> qa.AnswerId) |> Array.ofSeq
+                            let questionsAnswers =
+                                db.Main.QuestionsAnswer |> Seq.cache
+                                |> Seq.map (fun qa -> (qa.QuestionId, qa.AnswerId))
+                                |> Seq.filter (fun (qq, a) -> qq = q.Id.Value)
+                                |> Seq.map (fun (qq, a) -> a) |> Array.ofSeq
                             let answers = 
                                 query {
                                     for a in db.Main.Answer do
@@ -110,19 +109,19 @@ let getARQuestions () = getQuestions (Seq.filter (fun q -> q.Type.ToUpper() = "A
 let getSRQuestions () = getQuestions (Seq.filter (fun q -> q.Type.ToUpper() = "SR"))
 let getHRQuestions () = getQuestions (Seq.filter (fun q -> q.Type.ToUpper() = "HR"))
 
-let getQuestionsForTest (dbTest:SqlProvider.dataContext.``main.TestEntity``) =
+let getQuestionsForTest testId =
     query {
         for tq in db.Main.TestQuestion do
-            where(tq.TestId = dbTest.Id.Value)
+            where(tq.TestId = testId)
             select tq
     }
     |> Seq.map (fun tq ->
         let question = 
             getQuestions (Seq.filter (fun q -> q.Id.Value = tq.QuestionId)) 
             |> Seq.exactlyOne
-        let answer = (getDbAnswer tq.AnswerId.Value).Value.MapTo<Answer>()
+        let answer = tq.AnswerId |> Option.map (fun aid -> (getDbAnswer aid).Value.MapTo<Answer>())
         question, answer
-    )
+    ) |> Seq.cache
 
 let getDbTest id =
     query {
@@ -132,17 +131,19 @@ let getDbTest id =
     } |> Seq.first
    
 let getTest id =
-    let test = getDbTest id
-    test |> Option.map (fun (t:SqlProvider.dataContext.``main.TestEntity``) ->
-        let questions, answers = getQuestionsForTest t |> Seq.unzip
+    let dbTest = getDbTest id
+    let test = dbTest |> Option.map (fun (t:SqlProvider.dataContext.``main.TestEntity``) ->
+        let questions, answers = getQuestionsForTest t.Id.Value |> Seq.unzip
         let user = getUser (t.UserId)
-        {Id = t.Id.Value; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = Some t.Started; FinishedTime = t.Finished; User = user.Value})
+        {Id = t.Id.Value; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = t.Started; FinishedTime = t.Finished; Type = questionType t.Type; User = user.Value})
+    //printfn "GET TEST: %A" test
+    test
 
 let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
     let test = db.Main.Test.Create()
-    test.Started <- System.DateTime.Now
+    test.Started <- None
     test.UserId <- user.Id
-    test.Type <- Some(testType.ToString())
+    test.Type <- testType.ToString()
     do db.SubmitUpdates()
     for q in questions do
         let tq = db.Main.TestQuestion.Create()
@@ -152,11 +153,26 @@ let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
     do db.SubmitUpdates()
     getTest (test.Id.Value)
 
+let finishTest (test:Test) =
+    let dbTest = (getDbTest test.Id).Value
+    () //TODO: check correctness of answers and set userData accordingly
+
 let startTest (test:Test) =
     let dbTest = (getDbTest test.Id).Value
-    dbTest.Started <- System.DateTime.Now
-    db.SubmitUpdates()
-
+    match dbTest.Started with
+    | None -> 
+            dbTest.Started <- Some (System.DateTime.Now.AddSeconds(2.0))
+            db.SubmitUpdates()
+            async {
+                let time = testTime test.Type + System.TimeSpan(0,0,2)
+                let miliseconds = time.TotalMilliseconds |> int
+                do! Async.Sleep miliseconds
+                match dbTest.Finished with
+                | None -> finishTest test
+                | _ -> ()
+            } |> Async.Start
+            {test with StartedTime = dbTest.Started}
+    | _ -> test
 
 let getSessionDbObj sessionId =
     query {

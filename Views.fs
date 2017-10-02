@@ -6,6 +6,8 @@ open Suave.RequestErrors
 
 open System
 
+open Domain
+
 DotLiquid.setTemplatesDir "./templates"
 
 let NotFound = NOT_FOUND "Not found"
@@ -32,11 +34,12 @@ type GenericPageViewModel = {Title : string; Content : string}
 let genericPage title content =
     DotLiquid.page "generic.html" {Title = title; Content = content}
 
-type TestEnvironmentViewModel = {TestTitle : string; TestTime : TimeSpan;}
+type TestEnvironmentViewModel = {TestTitle : string; TestTime : TimeSpan; QuestionCount : int}
 let testEnvironment (testType:Domain.QuestionType) =
-    let title, time =
+    let time = testTime testType
+    let title, questionCount =
         match testType with
-        | AR -> "Test na sędziego pomocniczego", TimeSpan(0, 20, 0)
-        | SR -> "Test na sędziego zniczowego", TimeSpan(0, 20, 0)
-        | HR -> "Test na sędziego głównego", TimeSpan(0, 35, 0)
-    DotLiquid.page "test.html" {TestTitle = title; TestTime = time}
+        | AR -> "Test na sędziego pomocniczego", 25
+        | SR -> "Test na sędziego zniczowego", 25
+        | HR -> "Test na sędziego głównego", 50
+    DotLiquid.page "test.html" {TestTitle = title; TestTime = time; QuestionCount = questionCount}

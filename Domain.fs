@@ -88,9 +88,10 @@ type Test =
     {
         Id : int64
         Questions : Question array
-        Answers : Answer array
+        Answers : Answer option array
         StartedTime : System.DateTime option
         FinishedTime : System.DateTime option
+        Type : QuestionType
         User : User
     }
     with
@@ -99,6 +100,11 @@ type Test =
             | Some x, Some y -> x - y
             | _ -> System.TimeSpan()
 
+let testTime testType =
+    match testType with
+    | AR -> TimeSpan(0, 20, 0)
+    | SR -> TimeSpan(0, 20, 0)
+    | HR -> TimeSpan(0, 35, 0)
 
 type CSRF = string
 type SessionId = string

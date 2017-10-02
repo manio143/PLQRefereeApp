@@ -1,0 +1,37 @@
+#test {
+    width: 50%;
+    margin: 0 auto;
+}
+
+@media(max-width: 650px) {
+    #test {
+        width: 100%;
+    }
+}
+
+#test p.question {
+    width: 96%;
+    margin: 0 auto 1em auto;
+}
+#test .answer-wrapper {
+    width: 95%;
+    margin: 0 auto;
+}
+
+#test button {
+    width: 100px;
+    margin: 20px auto 10px auto;
+}
+
+p.clock {
+    color: firebrick;
+}
+div.clock-wrapper {
+    background-color: rgba(178, 34, 34, 0.73)
+}
+div.clock {
+    background-color: firebrick;
+}
+div.clock::after{
+    content: '\00a0 ';
+}

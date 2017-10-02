@@ -4,6 +4,7 @@ open Suave
 open Suave.Filters
 open Suave.Successful
 open Suave.Operators
+open Suave.RequestErrors
 
 open Authentication
 open Helpers
@@ -80,7 +81,18 @@ module Tests =
                         | _ -> Views.BadRequest
                 )
             | None -> Views.BadRequest
-        let page = request action |> POST
+        let page = POST <| request action
+        let startTest = 
+            let prepareQuestions test =
+                test.Questions |> Seq.map (fun q -> {q with Answers = q.Answers |> Seq.map (fun a -> {a with Correct = false}) |> Seq.cache |> Seq.scramble |> Array.ofSeq }) |> Seq.cache |> Seq.scramble |> Array.ofSeq
+        
+            POST <| session (fun sess ->
+                                        match sess with
+                                        | LoggedIn(_, _, _, Some test) -> 
+                                            let test = startTest test
+                                            OK <| sprintf "{\"questions\":%s, \"started\":%s, \"time\":%d}" (Json.toJson (prepareQuestions test) |> utf8) (Json.toJson test.StartedTime.Value |> utf8) (testTime test.Type).Minutes
+                                        | _ -> BAD_REQUEST ""
+                                        )
 
     module TestPage =
         open Views

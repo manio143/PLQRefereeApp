@@ -23,6 +23,7 @@ module Tests =
     let SR = prefix + "/SR"
     let HR = prefix + "/HR"
     let Test = prefix
+    let startTest = prefix + "-start"
 
 let databaseBackup = "/dbbackup"
 
