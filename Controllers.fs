@@ -77,22 +77,55 @@ module Tests =
                         match usrData.CanTakeTest testType with
                         | Choice1Of2 true ->
                             let test = createTest testType sess.User.Value
-                            sessionWithTest test >=> Views.testEnvironment testType
+                            sessionWithTest (Some test.Value.Id) >=> Views.testEnvironment testType
                         | _ -> Views.BadRequest
                 )
             | None -> Views.BadRequest
         let page = POST <| request action
+        let jsonResponse (questions:Question array) (started:System.DateTime) (time:System.TimeSpan) =
+            OK <| (sprintf "{\"questions\":%s, \"started\":%s, \"time\":{\"minutes\":%d, \"seconds\":%d}}"
+                    (Json.toJson questions |> utf8) (Json.toJson started |> utf8) time.Minutes time.Seconds)
+        let prepareQuestions questions =
+            questions |> Seq.map (fun (q:Question) -> 
+                                            {q with Answers = 
+                                                    q.Answers 
+                                                    |> Seq.map (fun a -> {a with Correct = false})
+                                                    |> Seq.scramble 
+                                                    |> Array.ofSeq })
+                      |> Seq.scramble |> Array.ofSeq
         let startTest = 
-            let prepareQuestions test =
-                test.Questions |> Seq.map (fun q -> {q with Answers = q.Answers |> Seq.map (fun a -> {a with Correct = false}) |> Seq.cache |> Seq.scramble |> Array.ofSeq }) |> Seq.cache |> Seq.scramble |> Array.ofSeq
-        
             POST <| session (fun sess ->
-                                        match sess with
-                                        | LoggedIn(_, _, _, Some test) -> 
-                                            let test = startTest test
-                                            OK <| sprintf "{\"questions\":%s, \"started\":%s, \"time\":%d}" (Json.toJson (prepareQuestions test) |> utf8) (Json.toJson test.StartedTime.Value |> utf8) (testTime test.Type).Minutes
-                                        | _ -> BAD_REQUEST ""
-                                        )
+                                match sess.Test with
+                                | Some test -> 
+                                    let test = startTest test
+                                    jsonResponse (prepareQuestions test.Questions) test.StartedTime.Value (testTime test.Type)
+                                | _ -> BAD_REQUEST ""
+                            )
+        let finishTest =
+            POST <| session (fun sess ->
+                                match sess.Test with
+                                | Some test ->
+                                    let test = finishTest test
+                                    let badQuestions = getIncorrectAnsweredQuestions test
+                                    
+                                    jsonResponse badQuestions test.StartedTime.Value test.Duration 
+                                    >=> sessionWithTest None (* Remove the test from session since it's finished. *)
+                                | _ -> BAD_REQUEST ""
+                            )
+
+        let answerTest =
+            POST <| session (fun sess ->
+                                match sess.TestId with
+                                | Some testId ->
+                                    request (fun req ->
+                                                    match req.rawForm |> utf8 with
+                                                    | Sscanf "q:%d;a:%d;" (qid, aid) ->
+                                                        markAnswer testId qid (Some aid)
+                                                        OK ""
+                                                    | _ -> BAD_REQUEST "Malformed request"
+                                            ) 
+                                | _ -> BAD_REQUEST ""
+                            )
 
     module TestPage =
         open Views
@@ -111,7 +144,7 @@ module Tests =
                                 "<p>Ten test został przez ciebie już zaliczony.</p>"
                             | Choice2Of2 None -> "<p>Nie spełniasz wszystkich wymagań, aby być dopuszczonym do tego testu</p>"
                             | Choice2Of2 (Some date) ->
-                                "<p>Wygląda na to, że nie możesz pisać tego testu do <strong>" + date.ToString() + "</strong></p>"
+                                "<p>Wygląda na to, że nie możesz pisać tego testu do <strong>" + date.ToString("dd-MM-yyyy H:mm") + "</strong></p>"
                         {Summary = testSummary; TestButton = link; Title = ("Test " + testType.ToString()); }
                     Views.testPage viewModel
                 | None -> Views.BadRequest )

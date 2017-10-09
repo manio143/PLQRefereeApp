@@ -30,12 +30,34 @@ let getUser id =
         select user
     } |> Seq.first |> Option.map (fun usr -> usr.MapTo<User>())
 
-let getUserData (usr:User) =
+let mapUserData (dbUserData:SqlProvider.dataContext.``main.UserDataEntity``) =
+    {
+        Id = dbUserData.Id.Value
+        Name = dbUserData.Name.Value
+        Surname = dbUserData.Name.Value
+        Team = dbUserData.Team.Value
+        Ar = dbUserData.Ar
+        Sr = dbUserData.Sr
+        Hr = dbUserData.Hr
+        Arcooldown = dbUserData.Arcooldown
+        Srcooldown = dbUserData.Srcooldown
+        Hrcooldown = dbUserData.Hrcooldown
+        ArIrdp = dbUserData.ArIrdp
+        SrIrdp = dbUserData.SrIrdp
+        HrIrdp = dbUserData.HrIrdp
+        HrPayment = dbUserData.HrPayment
+    }
+
+let getDbUserData (usr:User) =
     query {
         for userData in db.Main.UserData do
         where (userData.Id = Some(usr.Id))
         select userData
-    } |> Seq.first |> Option.map (fun usrData -> usrData.MapTo<UserData>()) |> fun opt -> opt.Value
+    } |> Seq.first 
+
+let getUserData (usr:User) =
+    getDbUserData usr |> Option.map mapUserData 
+    |> Option.get
 
 let getDbUser email =
     query {
@@ -139,6 +161,12 @@ let getTest id =
     //printfn "GET TEST: %A" test
     test
 
+type Session with
+    member this.Test =
+        match this.TestId with
+        | Some tid -> getTest tid
+        | None -> None
+
 let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
     let test = db.Main.Test.Create()
     test.Started <- None
@@ -153,9 +181,54 @@ let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
     do db.SubmitUpdates()
     getTest (test.Id.Value)
 
+let markAnswer testId questionId answerId =
+    query {
+        for tq in db.Main.TestQuestion do
+        where(tq.TestId = testId && tq.QuestionId = questionId)
+        select tq
+    } |> Seq.exactlyOne
+    |> fun tq ->
+        tq.AnswerId <- answerId
+        db.SubmitUpdates()
+
 let finishTest (test:Test) =
     let dbTest = (getDbTest test.Id).Value
-    () //TODO: check correctness of answers and set userData accordingly
+    match dbTest.Finished with
+    | Some _ -> test
+    | None ->
+        let correctlyAnswered = 
+            test.Answers 
+            |> Seq.fold (fun acc answer -> 
+                             acc + Option.orDefault 0 (Option.map (fun a -> if a.Correct then 1 else 0) answer)) 0
+        let mark = (correctlyAnswered |> decimal) / (testQuestionCount test.Type |> decimal) > 0.80m
+        let usrData = (getDbUserData test.User).Value
+        if mark then
+            match test.Type with
+            | AR -> usrData.Ar <- Some test.Id
+            | SR -> usrData.Sr <- Some test.Id
+            | HR -> usrData.Hr <- Some test.Id
+        else
+            match test.Type with
+            | AR -> usrData.Arcooldown <- Some (System.DateTime.Now.AddDays(6.0))
+            | SR -> usrData.Srcooldown <- Some (System.DateTime.Now.AddDays(6.0))
+            | HR -> usrData.Hrcooldown <- Some (System.DateTime.Now.AddDays(6.0))
+        let now = Some System.DateTime.Now
+        dbTest.Finished <- now
+        db.SubmitUpdates()
+        {test with FinishedTime = now}
+
+let getIncorrectAnsweredQuestions (test:Test) =
+    seq {
+        for i in [0..test.Answers.Length-1] do
+            match test.Answers.[i] with
+            | Some answer -> if not answer.Correct then
+                                yield {test.Questions.[i] with Answers =
+                                                               test.Questions.[i].Answers 
+                                                               |> Seq.map (fun a -> {a with Correct = a.Id = answer.Id})
+                                                               |> Seq.scramble
+                                                               |> Array.ofSeq}
+            | None -> ()
+    } |> Seq.scramble |> Array.ofSeq
 
 let startTest (test:Test) =
     let dbTest = (getDbTest test.Id).Value
@@ -167,9 +240,7 @@ let startTest (test:Test) =
                 let time = testTime test.Type + System.TimeSpan(0,0,2)
                 let miliseconds = time.TotalMilliseconds |> int
                 do! Async.Sleep miliseconds
-                match dbTest.Finished with
-                | None -> finishTest test
-                | _ -> ()
+                finishTest test |> ignore
             } |> Async.Start
             {test with StartedTime = dbTest.Started}
     | _ -> test
@@ -197,7 +268,7 @@ let getSession sessionId =
     | Some ses ->
         match ses.UserId with
         | Some usr ->
-            Some(LoggedIn(ses.SessionId, (getUser usr).Value, ses.Csrftoken, Option.bind getTest ses.TestId))
+            Some(LoggedIn(ses.SessionId, (getUser usr).Value, ses.Csrftoken, ses.TestId))
         | None -> Some(NotLoggedIn(ses.SessionId, ses.Csrftoken))
 let saveSession (session:Session) =
     removeOldSessions()
@@ -206,14 +277,13 @@ let saveSession (session:Session) =
     | Some ses ->
         ses.Csrftoken <- session.Csrf
         ses.Expires <- tomorrow
-        if session.Test.IsSome then ses.TestId <- Some session.Test.Value.Id
-        else ses.TestId <- None
+        ses.TestId <- session.TestId
     | None ->
         let ses = db.Main.Session.Create()
         ses.SessionId <- session.SessionId
         ses.Csrftoken <- session.Csrf
         ses.Expires <- tomorrow
         if session.User.IsSome then ses.UserId <- Some session.User.Value.Id
-        if session.Test.IsSome then ses.TestId <- Some session.Test.Value.Id
+        if session.TestId.IsSome then ses.TestId <- session.TestId
     db.SubmitUpdates()
         

@@ -81,6 +81,14 @@ function getTimeRemaining(endtime) {
     };
 }
 
+function disableAnswering() {
+    for (chk of document.getElementsByTagName("input")) {
+        if (chk.type == "radio") {
+            chk.setAttribute("disabled", "disabled");
+        }
+    }
+}
+
 function initializeClock(time) {
     let endtime = new Date(Date.parse(new Date()) + time * 60 * 1000);
     var clockLabel = document.getElementById("clock-label");
@@ -95,19 +103,24 @@ function initializeClock(time) {
         //console.log(percent + '%');
 
         if (t.total <= 0) {
-            clearInterval(timeinterval);
-            for (chk of document.getElementsByTagName("input")) {
-                if (chk.type == "radio") {
-                    chk.setAttribute("disabled", "disabled");
-                }
+            disableClock();
+            disableAnswering();
+            let submit = document.getElementById("submit-btn");
+            submit.setAttribute("disabled", "disabled");
+            if(submit.mDone == undefined) {
+                submit.click();
             }
-            document.getElementById("submit-btn").removeAttribute("disabled");
-            document.getElementById("submit-btn").click();
         }
     }
 
     updateClock();
-    var timeinterval = setInterval(updateClock, 1000);
+    window.timeinterval = setInterval(updateClock, 1000);
+}
+
+function disableClock() {
+    clearInterval(window.timeinterval);
+    document.getElementById("clock-label").remove();
+    document.getElementById("clock-bar").remove();
 }
 
 let genericErrorHandler = (status, request) => { alert("ERROR " + status + "\n" + request); }
@@ -117,7 +130,6 @@ window.onload = function () {
     var startTestBtn = document.getElementById("start-test-btn");
     startTestBtn.onclick = () => {
         send("POST", "/test-start", "", (_, response) => {
-            console.log(response);
             let testData = JSON.parse(response);
             let intro = document.getElementById("intro");
             let root = intro.parentNode;
@@ -154,7 +166,7 @@ window.onload = function () {
                     radio.value = a["Id@"];
                     radio.name = q["Id@"];
                     radio.onchange = () => {
-                        send("POST", "/test-answer", JSON.stringify({ question: q["Id@"], answer: a["Id@"] }), () => { }, genericErrorHandler, withCSRF);
+                        send("POST", "/test-answer", "q:"+radio.name+";a:"+radio.value+";", () => { }, genericErrorHandler, withCSRF);
                         required();
                     };
                     let label = document.createElement("label");
@@ -173,11 +185,26 @@ window.onload = function () {
             submit.type = "submit";
             submit.innerText = "Zakończ test";
             submit.id = "submit-btn";
-            submit.onclick = () => { confirm("Jesteś pewny?"); }
+            submit.onclick = () => { 
+                let go = true;
+                if(submit.mDone == undefined)
+                    go = confirm("Jesteś pewny?");
+                if(go) {
+                    disableAnswering();
+                    disableClock();
+                    submit.setAttribute("disabled", "disabled");
+                    submit.mDone = true;
+                    send("POST", "/test-finish", "", (status, response) => {
+                        //TODO: handle test finish response
+                        console.log("TEST FINISHED");
+                        console.log(response);
+                    }, genericErrorHandler, withCSRF);
+                }
+            }
             wrapper.appendChild(submit);
             root.appendChild(wrapper);
             required();
-            initializeClock(testData.time);
+            initializeClock(testData.time.minutes);
         }, genericErrorHandler, withCSRF);
     };
 }

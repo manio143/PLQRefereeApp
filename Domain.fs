@@ -25,9 +25,9 @@ type UserData =
         Name : string
         Surname : string
         Team : string
-        Ar : int option
-        Sr : int option
-        Hr : int option
+        Ar : int64 option
+        Sr : int64 option
+        Hr : int64 option
         Arcooldown : DateTime option
         Srcooldown : DateTime option
         Hrcooldown : DateTime option
@@ -54,15 +54,15 @@ type UserData =
             match testType with
              | AR -> 
                  if this.CanTakeAR then Choice1Of2 true
-                 else if this.HasARCooldown then Choice2Of2 (Some this.ARCooldown)
+                 else if this.HasARCooldown then Choice2Of2 this.ARCooldown
                       else Choice1Of2 false
              | SR -> 
                  if this.CanTakeSR then Choice1Of2 true
-                 else if this.HasSRCooldown then Choice2Of2 (Some this.SRCooldown)
+                 else if this.HasSRCooldown then Choice2Of2 this.SRCooldown
                       else Choice1Of2 false
              | HR -> 
                  if this.CanTakeHR then Choice1Of2 true
-                 else if this.HasHRCooldown then Choice2Of2 (Some this.HRCooldown)
+                 else if this.HasHRCooldown then Choice2Of2 this.HRCooldown
                       else if this.HrIrdp then Choice1Of2 false
                            else Choice2Of2 None
 
@@ -102,15 +102,20 @@ type Test =
 
 let testTime testType =
     match testType with
-    | AR -> TimeSpan(0, 20, 0)
-    | SR -> TimeSpan(0, 20, 0)
+    | AR | SR -> TimeSpan(0, 20, 0)
     | HR -> TimeSpan(0, 35, 0)
+
+let testQuestionCount testType =
+    match testType with
+    | AR | SR -> 25
+    | HR -> 50
 
 type CSRF = string
 type SessionId = string
+type TestId = int64
 type Session =
     | NotLoggedIn of SessionId * CSRF
-    | LoggedIn of SessionId * User * CSRF * Test option
+    | LoggedIn of SessionId * User * CSRF * TestId option
     with
         member this.Csrf =
             match this with
@@ -124,7 +129,7 @@ type Session =
             match this with
             | NotLoggedIn _ -> None
             | LoggedIn (_, user, _, _) -> Some user
-        member this.Test =
+        member this.TestId =
             match this with
             | NotLoggedIn _ -> None
             | LoggedIn (_, _, _, test) -> test

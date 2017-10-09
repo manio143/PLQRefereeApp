@@ -85,5 +85,5 @@ let sessionWithTest testOption =
                     | LoggedIn (id, usr, csrf, _) -> LoggedIn(id, usr, csrf, testOption)
                     | x -> x
                 saveSession session
-                withDebugLog (sprintf "Saved test to session {%A}" (Option.map (fun t -> t.Id) testOption)) >=>setSessionCookie session
+                withDebugLog (sprintf "Saved test to session {%A}" testOption) >=> setSessionCookie session
             )

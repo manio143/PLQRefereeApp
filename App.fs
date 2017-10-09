@@ -30,6 +30,8 @@ let app =
         path Routes.Tests.HR >=> loggedOn Tests.HR.page
         path Routes.Tests.Test >=> POST >=> loggedOn Tests.TestEnvironment.page
         path Routes.Tests.startTest >=> Tests.TestEnvironment.startTest
+        path Routes.Tests.finishTest >=> Tests.TestEnvironment.finishTest
+        path Routes.Tests.answerTest >=> Tests.TestEnvironment.answerTest
 
         pathRegex "(.*)\.(css|jpg|svg|png|gif|js)" >=> Files.browseHome
 

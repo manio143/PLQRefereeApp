@@ -24,6 +24,8 @@ module Tests =
     let HR = prefix + "/HR"
     let Test = prefix
     let startTest = prefix + "-start"
+    let finishTest = prefix + "-finish"
+    let answerTest = prefix + "-answer"
 
 let databaseBackup = "/dbbackup"
 

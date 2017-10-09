@@ -70,6 +70,12 @@ module Seq =
                     yield x
                     yield! scramble2 (remove x sqn)
             }
-        scramble2 sqn
+        scramble2 (Seq.cache sqn)
 
     let printMap seq = Seq.map (fun o -> printfn "%A" o; o) seq
+
+let (|Sscanf|_|) pattern input =
+    try
+        Some (Sscanf.sscanf pattern input)
+    with
+    | _ -> None
