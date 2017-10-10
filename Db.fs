@@ -191,16 +191,17 @@ let markAnswer testId questionId answerId =
         tq.AnswerId <- answerId
         db.SubmitUpdates()
 
+type Mark = {CorrectlyAnswered : int; Count : int}
 let finishTest (test:Test) =
     let dbTest = (getDbTest test.Id).Value
+    let correctlyAnswered = 
+        test.Answers 
+        |> Seq.fold (fun acc answer -> 
+                         acc + Option.orDefault 0 (Option.map (fun a -> if a.Correct then 1 else 0) answer)) 0
     match dbTest.Finished with
-    | Some _ -> test
+    | Some _ -> (test, {CorrectlyAnswered = correctlyAnswered; Count = testQuestionCount test.Type})
     | None ->
-        let correctlyAnswered = 
-            test.Answers 
-            |> Seq.fold (fun acc answer -> 
-                             acc + Option.orDefault 0 (Option.map (fun a -> if a.Correct then 1 else 0) answer)) 0
-        let mark = (correctlyAnswered |> decimal) / (testQuestionCount test.Type |> decimal) > 0.80m
+        let mark = (correctlyAnswered |> decimal) / (testQuestionCount test.Type |> decimal) >= 0.80m
         let usrData = (getDbUserData test.User).Value
         if mark then
             match test.Type with
@@ -215,19 +216,21 @@ let finishTest (test:Test) =
         let now = Some System.DateTime.Now
         dbTest.Finished <- now
         db.SubmitUpdates()
-        {test with FinishedTime = now}
+        ({test with FinishedTime = now}, {CorrectlyAnswered = correctlyAnswered; Count = testQuestionCount test.Type})
 
 let getIncorrectAnsweredQuestions (test:Test) =
+    let changeQuestion i f = {test.Questions.[i] with Answers =
+                                                       test.Questions.[i].Answers 
+                                                       |> Seq.map (fun a -> {a with Correct = f a})
+                                                       |> Seq.scramble
+                                                       |> Array.ofSeq}
+
     seq {
         for i in [0..test.Answers.Length-1] do
             match test.Answers.[i] with
             | Some answer -> if not answer.Correct then
-                                yield {test.Questions.[i] with Answers =
-                                                               test.Questions.[i].Answers 
-                                                               |> Seq.map (fun a -> {a with Correct = a.Id = answer.Id})
-                                                               |> Seq.scramble
-                                                               |> Array.ofSeq}
-            | None -> ()
+                                yield changeQuestion i (fun a -> a.Id = answer.Id)
+            | None -> yield changeQuestion i (fun _ -> false)
     } |> Seq.scramble |> Array.ofSeq
 
 let startTest (test:Test) =

@@ -1,6 +1,49 @@
+body {
+    margin: 0;
+}
+
+header {
+    background-color: black;
+    font-family: sans;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media(max-width: 610px) {
+    header, header nav {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+    }
+}
+
+header a, header a:hover, header a:visited {
+    color: #eee;
+    text-decoration: none;
+    padding: 0.2em;
+}
+
+header a:hover {
+    color: white;
+}
+
+main {
+    width: 96%;
+    margin: 0 auto;
+}
+
 #test {
     width: 50%;
     margin: 0 auto;
+}
+
+@media(max-width: 900px) {
+    #test {
+        width: 70%;
+    }
 }
 
 @media(max-width: 650px) {
@@ -9,13 +52,29 @@
     }
 }
 
+#test h4 {
+    margin: 1em 0 0.5em 0
+}
+
 #test p.question {
-    width: 96%;
-    margin: 0 auto 1em auto;
+    width: 100%;
+    margin: 0 auto 0.6em auto;
 }
 #test .answer-wrapper {
-    width: 95%;
+    width: 100%;
     margin: 0 auto;
+}
+
+#test div.answer-wrapper div {
+    display: table;
+}
+#test div.answer-wrapper input {
+    display: table-cell;
+}
+#test div.answer-wrapper label {
+    display: table-cell;
+    text-indent: -20px;
+    padding-left: 20px;
 }
 
 #test button {
@@ -34,4 +93,14 @@ div.clock {
 }
 div.clock::after{
     content: '\00a0 ';
+}
+
+.red {
+    color: #ec3131;
+}
+.blue {
+    color: #2a3cd8;
+}
+.bold {
+    font-weight: bold;
 }

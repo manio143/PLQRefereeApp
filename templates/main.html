@@ -21,12 +21,14 @@
             <a href="/test/SR">Test-SR</a>
             <a href="/test/HR">Test-HR</a>
         </nav>
-        <nav style="float: right">
+        <nav>
             <a href="/login">Login</a>
         </nav>
     </header>
-    {% block content %}
-    <h1>Welcome on the site!</h1>
-    {% endblock %}
+    <main>
+        {% block content %}
+        <h1>Welcome on the site!</h1>
+        {% endblock %}
+    </main>
 </body>
 </html>

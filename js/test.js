@@ -108,7 +108,8 @@ function initializeClock(time) {
             let submit = document.getElementById("submit-btn");
             submit.setAttribute("disabled", "disabled");
             if(submit.mDone == undefined) {
-                submit.click();
+                submit.mDone = true;
+                submit.onclick();
             }
         }
     }
@@ -126,6 +127,21 @@ function disableClock() {
 let genericErrorHandler = (status, request) => { alert("ERROR " + status + "\n" + request); }
 let withCSRF = (request) => { request.setRequestHeader("X-CSRF-Token", parse_cookies().CSRFToken); }
 
+let nextChar = (char) => {
+    if(char == "A") return "B";
+    else if(char == "B") return "C";
+    else return "D";
+}
+
+let createElement = (type, id, className) => {
+    let element = document.createElement(type);
+    if(id != undefined)
+        element.id = id;
+    if(className != undefined)
+        element.className = className;
+    return element
+}
+
 window.onload = function () {
     var startTestBtn = document.getElementById("start-test-btn");
     startTestBtn.onclick = () => {
@@ -134,77 +150,96 @@ window.onload = function () {
             let intro = document.getElementById("intro");
             let root = intro.parentNode;
             root.removeChild(intro);
-            let wrapper = document.createElement("div");
-            wrapper.id = "test";
-            let clockLabel = document.createElement("p");
-            clockLabel.className = "clock";
-            clockLabel.id = "clock-label";
-            wrapper.appendChild(clockLabel);
-            let clockBarWrapper = document.createElement("div");
-            clockBarWrapper.className = "clock-wrapper";
-            let clockBar = document.createElement("div");
-            clockBar.className = "clock";
-            clockBar.id = "clock-bar";
-            clockBarWrapper.appendChild(clockBar);
-            wrapper.appendChild(clockBarWrapper);
-            let counter = 1;
-            for (q of testData.questions) {
-                let qwrapper = document.createElement("div");
-                let header = document.createElement("h4");
-                header.innerHTML = "Pytanie " + (counter++);
-                let question = document.createElement("p");
-                question.innerHTML = q["Question@"];
-                question.className = "question"
-                let awrapper = document.createElement("div");
-                awrapper.className = "answer-wrapper";
-                for (a of q["Answers@"]) {
-                    let isolator = document.createElement("div");
-                    let id = q["Id@"] + ":" + a["Id@"];
-                    let radio = document.createElement("input");
-                    radio.type = "radio";
-                    radio.id = id;
-                    radio.value = a["Id@"];
-                    radio.name = q["Id@"];
-                    radio.onchange = () => {
-                        send("POST", "/test-answer", "q:"+radio.name+";a:"+radio.value+";", () => { }, genericErrorHandler, withCSRF);
-                        required();
-                    };
-                    let label = document.createElement("label");
-                    label.for = id;
-                    label.innerHTML = a["Answer@"];
-                    isolator.appendChild(radio);
-                    isolator.appendChild(label);
-                    awrapper.appendChild(isolator);
-                }
-                qwrapper.appendChild(header);
-                qwrapper.appendChild(question);
-                qwrapper.appendChild(awrapper);
-                wrapper.appendChild(qwrapper);
-            }
-            let submit = document.createElement("button");
-            submit.type = "submit";
-            submit.innerText = "Zakończ test";
-            submit.id = "submit-btn";
-            submit.onclick = () => { 
-                let go = true;
-                if(submit.mDone == undefined)
-                    go = confirm("Jesteś pewny?");
-                if(go) {
-                    disableAnswering();
-                    disableClock();
-                    submit.setAttribute("disabled", "disabled");
-                    submit.mDone = true;
-                    send("POST", "/test-finish", "", (status, response) => {
-                        //TODO: handle test finish response
-                        console.log("TEST FINISHED");
-                        console.log(response);
-                    }, genericErrorHandler, withCSRF);
-                }
-            }
-            wrapper.appendChild(submit);
-            root.appendChild(wrapper);
+            generateView(testData, root, true);
             required();
             initializeClock(testData.time.minutes);
         }, genericErrorHandler, withCSRF);
     };
+}
+
+function generateView(testData, root, submitAndClock) {
+    let wrapper = createElement("div", "test");
+    
+    if(submitAndClock) {
+        let clockLabel = createElement("p", "clock-label", "clock");
+        wrapper.appendChild(clockLabel);
+        let clockBarWrapper = createElement("div", undefined, "clock-wrapper");
+        let clockBar = createElement("div", "clock-bar", "clock");
+        clockBarWrapper.appendChild(clockBar);
+        wrapper.appendChild(clockBarWrapper);
+    } else {
+        let finishLabel = createElement("p", "finish-label");
+        let numberOfQuestions = testData.mark["Count@"];
+        let numberOfCorrect = testData.mark["CorrectlyAnswered@"]
+        finishLabel.innerText = "Zakończyłeś test! Odpowiedziałeś poprawnie na " + numberOfCorrect + "/" + numberOfQuestions +
+                                " pytań. Jest to " + (numberOfCorrect/numberOfQuestions >= 0.8 ? "ponad 80%, czyli zaliczyłeś ten test. Gratulacje!" : "poniżej 80%, czyli nie udało ci się zaliczyć testu.");
+        let anotherLabel = createElement("p");
+        anotherLabel.innerText = "Poniżej znajdują się pytania, na które nie odpowiedziałeś poprawnie."
+        let buttonFinish = createElement("button");
+        buttonFinish.innerText = "Powrót do portalu";
+        buttonFinish.onclick = () => { window.location = "/account/details"; }
+        wrapper.appendChild(finishLabel);
+        wrapper.appendChild(anotherLabel);
+        wrapper.appendChild(buttonFinish);
+    }
+    
+    let counter = 1;
+    for (q of testData.questions) {
+        let qwrapper = createElement("div");
+        let header = createElement("h4");
+        header.innerHTML = "Pytanie " + (counter++);
+        let question = createElement("p", undefined, "question");
+        question.innerHTML = q["Question@"];
+        let awrapper = createElement("div", undefined, "answer-wrapper");
+        let char = 'A';
+        for (a of q["Answers@"]) {
+            let isolator = document.createElement("div");
+            let id = q["Id@"] + ":" + a["Id@"];
+            if(submitAndClock) {
+                let radio = createElement("input", id);
+                radio.type = "radio";
+                radio.value = a["Id@"];
+                radio.name = q["Id@"];
+                radio.onchange = () => {
+                    send("POST", "/test-answer", "q:"+radio.name+";a:"+radio.value+";", () => { }, genericErrorHandler, withCSRF);
+                    required();
+                };
+                isolator.appendChild(radio);
+            }
+            let label = document.createElement("label");
+            label.for = id;
+            label.innerHTML = (a["Correct@"] ? "<span class=\"red bold\">":"") + char + ". " +
+                            (a["Correct@"] ? "</span>":"") + a["Answer@"];
+            char = nextChar(char);
+            isolator.appendChild(label);
+            awrapper.appendChild(isolator);
+        }
+        qwrapper.appendChild(header);
+        qwrapper.appendChild(question);
+        qwrapper.appendChild(awrapper);
+        wrapper.appendChild(qwrapper);
+    }
+    if(submitAndClock) {
+        let submit = createElement("button", "submit-btn");
+        submit.type = "submit";
+        submit.innerText = "Zakończ test";
+        submit.onclick = () => { 
+            let go = true;
+            if(submit.mDone == undefined)
+                go = confirm("Jesteś pewny?");
+            if(go) {
+                submit.mDone = true;
+                disableAnswering();
+                disableClock();
+                submit.setAttribute("disabled", "disabled");
+                send("POST", "/test-finish", "", (status, response) => {
+                    let testData = JSON.parse(response);
+                    wrapper.remove();
+                    generateView(testData, root, false);
+                }, genericErrorHandler, withCSRF);
+            }
+        }
+        wrapper.appendChild(submit);
+    }
+    root.appendChild(wrapper);
 }

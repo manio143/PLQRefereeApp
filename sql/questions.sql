@@ -1,7 +1,7 @@
-INSERT INTO Question (question, type) VALUES ('Q1 - A', 'AR');
-INSERT INTO Question (question, type) VALUES ('Q2 - A', 'AR');
-INSERT INTO Question (question, type) VALUES ('Q3 - B', 'AR');
-INSERT INTO Question (question, type) VALUES ('Q4 - A', 'AR');
+INSERT INTO Question (question, type) VALUES ('Pytanie o <span class="blue">Niebieskiego Pałkarza</span>.', 'AR');
+INSERT INTO Question (question, type) VALUES ('Długie pytanie zawierające dużo różnych słów, aczkolwiek nie jest ono gramatycznie poprawne, więc nie kierujmy się jego wartością językową. Równie dobrze mogłem użyć lorem ipsum, God Damn It!', 'AR');
+INSERT INTO Question (question, type) VALUES ('Pytanie o <span class="red">Czerwonego Pałkarza</span> oraz o <span class="blue">Niebieskiego Ścigającego</span>.', 'AR');
+INSERT INTO Question (question, type) VALUES ('Które z poniższych pytań <span class="bold">nie</span> zawiera formatowania?', 'AR');
 INSERT INTO Question (question, type) VALUES ('Q5 - A', 'AR');
 INSERT INTO Question (question, type) VALUES ('Q6 - C', 'AR');
 INSERT INTO Question (question, type) VALUES ('Q7 - A', 'AR');
@@ -49,10 +49,10 @@ INSERT INTO Question (question, type) VALUES ('Q48 - A', 'SR');
 INSERT INTO Question (question, type) VALUES ('Q49 - A', 'SR');
 INSERT INTO Question (question, type) VALUES ('Q50 - A', 'SR');
 
-INSERT INTO Answer (id, correct, answer) VALUES (1, 1, '_A_');
-INSERT INTO Answer (id, correct, answer) VALUES (2, 0, '_B_');
-INSERT INTO Answer (id, correct, answer) VALUES (3, 0, '_C_');
-INSERT INTO Answer (id, correct, answer) VALUES (4, 0, '_D_');
+INSERT INTO Answer (id, correct, answer) VALUES (1, 1, 'Krótka odpowiedź, poprawna');
+INSERT INTO Answer (id, correct, answer) VALUES (2, 0, 'Krótka zła odpowiedź');
+INSERT INTO Answer (id, correct, answer) VALUES (3, 0, 'Długa odpowiedź, zawierająca dużo mało interesujących słów. Generalnie za takie odpowiedzi wirtualny sędzia dostałby niebieską kartkę, #YOLO. Może niech jeszcze ciut się przedłuży, lol. Wgl nwm już o czym miałem tu pisać, hehe.');
+INSERT INTO Answer (id, correct, answer) VALUES (4, 0, 'I to takie inne pytanie.');
 
 INSERT INTO QuestionsAnswer VALUES (1, 1);
 INSERT INTO QuestionsAnswer VALUES (1, 2);

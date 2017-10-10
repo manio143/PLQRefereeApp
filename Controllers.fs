@@ -82,9 +82,11 @@ module Tests =
                 )
             | None -> Views.BadRequest
         let page = POST <| request action
-        let jsonResponse (questions:Question array) (started:System.DateTime) (time:System.TimeSpan) =
-            OK <| (sprintf "{\"questions\":%s, \"started\":%s, \"time\":{\"minutes\":%d, \"seconds\":%d}}"
-                    (Json.toJson questions |> utf8) (Json.toJson started |> utf8) time.Minutes time.Seconds)
+        let jsonResponse (questions:Question array) (started:System.DateTime) (time:System.TimeSpan) custom =
+            OK <| (sprintf "{\"questions\":%s, \"started\":%s, \"time\":{\"minutes\":%d, \"seconds\":%d}%s}"
+                    (Json.toJson questions |> utf8) (Json.toJson started |> utf8) time.Minutes time.Seconds
+                    (Option.orDefault "" custom)
+                  )
         let prepareQuestions questions =
             questions |> Seq.map (fun (q:Question) -> 
                                             {q with Answers = 
@@ -98,17 +100,17 @@ module Tests =
                                 match sess.Test with
                                 | Some test -> 
                                     let test = startTest test
-                                    jsonResponse (prepareQuestions test.Questions) test.StartedTime.Value (testTime test.Type)
+                                    jsonResponse (prepareQuestions test.Questions) test.StartedTime.Value (testTime test.Type) None
                                 | _ -> BAD_REQUEST ""
                             )
         let finishTest =
             POST <| session (fun sess ->
                                 match sess.Test with
                                 | Some test ->
-                                    let test = finishTest test
+                                    let test, mark = finishTest test
                                     let badQuestions = getIncorrectAnsweredQuestions test
-                                    
-                                    jsonResponse badQuestions test.StartedTime.Value test.Duration 
+                                    let additionalJson = ", \"mark\":" + (Json.toJson mark |> utf8)
+                                    jsonResponse badQuestions test.StartedTime.Value test.Duration (Some additionalJson)
                                     >=> sessionWithTest None (* Remove the test from session since it's finished. *)
                                 | _ -> BAD_REQUEST ""
                             )
