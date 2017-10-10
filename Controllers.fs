@@ -16,7 +16,7 @@ module Index =
     let page = Views.indexPage
 
 module Materials =
-    let page = Views.genericPage "" "Materials"
+    let page = Views.simplePage "materials.html"
 
 module Login =
     open Authentication

@@ -30,6 +30,9 @@ type TestPageViewModel = {Title : string; Summary : string; TestButton : string}
 let testPage (viewModel:TestPageViewModel) =
     DotLiquid.page "test_page.html" viewModel
 
+let simplePage fileName =
+    DotLiquid.page fileName ()
+
 type GenericPageViewModel = {Title : string; Content : string}
 let genericPage title content =
     DotLiquid.page "generic.html" {Title = title; Content = content}

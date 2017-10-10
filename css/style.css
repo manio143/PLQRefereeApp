@@ -1,5 +1,8 @@
 body {
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
@@ -33,6 +36,25 @@ header a:hover {
 main {
     width: 96%;
     margin: 0 auto;
+    flex: 1;
+    padding: 10px 0;
+}
+
+main > p {
+    width: 60%;
+}
+@media(max-width: 800px) {
+    main > p {
+        width: 100%;
+    }
+}
+
+main a, main a:hover, main a:visited {
+    color: green;
+    text-decoration: none;
+}
+main a:hover {
+    text-decoration: underline;
 }
 
 #test {
@@ -103,4 +125,29 @@ div.clock::after{
 }
 .bold {
     font-weight: bold;
+}
+
+footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background-color: black;
+    font-size: 14px;
+
+    width: 100%;
+}
+
+footer a, footer a:hover, footer a:visited{
+    color: #a8a;
+    text-decoration: none;
+}
+footer a:hover {
+    color: lightgreen;
+}
+footer p {
+    text-align: center;
+    color: white;
+    margin: 3px
 }
