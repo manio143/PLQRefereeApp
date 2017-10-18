@@ -2,7 +2,9 @@ module Views
 
 open Suave
 open Suave.Successful
+open Suave.Operators
 open Suave.RequestErrors
+open Suave.Writers
 
 open System
 
@@ -10,14 +12,21 @@ open Domain
 
 DotLiquid.setTemplatesDir "./templates"
 
-let NotFound = NOT_FOUND "Not found"
+type GenericPageViewModel = {Title : string; Content : string}
+let genericPage title content =
+    DotLiquid.page "generic.html" {Title = title; Content = content}
 
-let Unauthorized = UNAUTHORIZED "You must log in!"
-let Forbidden = FORBIDDEN "Only for admin"
+let error code title =
+    genericPage title (sprintf "<h1>%s</h1>" title) >=> setStatus code
 
-let BadRequest = BAD_REQUEST "An unexpected error occured."
+let NotFound = error HttpCode.HTTP_404 "Not found"
 
-let CSRFValidationFailed = BAD_REQUEST "The request didn't pass CQRS validation."
+let Unauthorized = error HttpCode.HTTP_401 "You must log in!"
+let Forbidden = error HttpCode.HTTP_403 "Only for admin"
+
+let BadRequest = error HttpCode.HTTP_400 "An unexpected error occured."
+
+let CSRFValidationFailed = error HttpCode.HTTP_400 "The request didn't pass CQRS validation."
 
 let indexPage = DotLiquid.page "main.html" []
 
@@ -32,10 +41,6 @@ let testPage (viewModel:TestPageViewModel) =
 
 let simplePage fileName =
     DotLiquid.page fileName ()
-
-type GenericPageViewModel = {Title : string; Content : string}
-let genericPage title content =
-    DotLiquid.page "generic.html" {Title = title; Content = content}
 
 type TestEnvironmentViewModel = {TestTitle : string; TestTime : TimeSpan; QuestionCount : int}
 let testEnvironment (testType:Domain.QuestionType) =
