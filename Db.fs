@@ -33,9 +33,9 @@ let getUser id =
 let mapUserData (dbUserData:SqlProvider.dataContext.``main.UserDataEntity``) =
     {
         Id = dbUserData.Id.Value
-        Name = dbUserData.Name.Value
-        Surname = dbUserData.Name.Value
-        Team = dbUserData.Team.Value
+        Name = dbUserData.Name
+        Surname = dbUserData.Name
+        Team = dbUserData.Team
         Ar = dbUserData.Ar
         Sr = dbUserData.Sr
         Hr = dbUserData.Hr
@@ -74,13 +74,19 @@ let createPassphrase passwd =
     let salt = BCrypt.Net.BCrypt.GenerateSalt(13)
     BCrypt.Net.BCrypt.HashPassword(passwd, salt)
 
-let registerUser email password =
+let registerUser email password name surname team =
     if emailExists email then Choice2Of2 "Istnieje już konto o podanym adresie email."
+    else if System.String.IsNullOrWhiteSpace(email) || System.String.IsNullOrWhiteSpace(password) then Choice2Of2 "Nieprawidłowe dane logowania."
     else
         (* open transaction *)
         let user = db.Main.User.``Create(administrator, email, passphrase)``(true, email, createPassphrase password)
+        let userData = db.Main.UserData.Create()
+        userData.Id <- user.Id
+        userData.Name <- name
+        userData.Surname <- surname
+        userData.Team <- team
         db.SubmitUpdates()
-        Choice1Of2 user
+        Choice1Of2 (user.MapTo<User>())
 
 
 let goodPassword usersPassphrase passwd =

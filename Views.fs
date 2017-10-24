@@ -34,6 +34,9 @@ type LoginPageViewModel = {Error : string option; Csrfinput : string}
 let loginPage (viewModel:LoginPageViewModel) =
     DotLiquid.page "login.html" viewModel
 
+let registrationPage (viewModel:LoginPageViewModel) =
+    DotLiquid.page "register.html" viewModel
+
 (* TestButton is either <a ..> or explanation why user can't take test *)
 type TestPageViewModel = {Title : string; Summary : string; TestButton : string}
 let testPage (viewModel:TestPageViewModel) =

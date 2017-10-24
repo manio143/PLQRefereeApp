@@ -151,3 +151,33 @@ footer p {
     color: white;
     margin: 3px
 }
+
+#register {
+    width: 405px;
+}
+#register > div {
+    display: flex;
+    justify-content: space-between;
+}
+#register > div > input {
+    width: 250px;
+    margin: 1px 0;
+}
+
+#register-form {
+    display: flex;
+}
+@media(max-width: 650px) {
+    #register-form {
+        flex-direction: column;
+    }
+}
+
+#register-form > div {
+    margin: 5px 10px;
+}
+
+.g-recaptcha {
+    margin: 8px auto;
+    width: 304px;
+}

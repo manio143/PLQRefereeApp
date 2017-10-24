@@ -24,9 +24,9 @@ module Login =
         choose [
             GET >=> (notLoggedOn <| withCSRF (fun csrf -> 
                 Views.loginPage { Error = None; Csrfinput = makeCSRFinput csrf }))
-            POST << notLoggedOn <| request (fun httpCtx ->
-                        let email = postData httpCtx "email"
-                        let password = postData httpCtx "password" 
+            POST << notLoggedOn <| request (fun httpReq ->
+                        let email = postData httpReq "email"
+                        let password = postData httpReq "password"
                         match Db.verifyUser email password with
                         | Some user -> authenticateUser user
                         | None ->
@@ -41,7 +41,27 @@ module Login =
 
 module Register =
     open Authentication
-    let page = Views.genericPage "" "Register"
+    let page =
+        choose [
+            GET >=> (notLoggedOn <| withCSRF (fun csrf ->
+                Views.registrationPage { Error = None; Csrfinput = makeCSRFinput csrf }))
+            POST << notLoggedOn <| request (fun httpReq ->
+                let email = postData httpReq "email"
+                let password = postData httpReq "password"
+                let name = postData httpReq "name"
+                let surname = postData httpReq "surname"
+                let team = postData httpReq "team"
+                match email, password, name, surname, team with
+                | Some email_, Some password_, Some name_, Some surname_, Some team_ ->
+                    match Db.registerUser email_ password_ name_ surname_ team_ with
+                    | Choice2Of2 err -> 
+                        withCSRF (fun csrf ->
+                        Views.registrationPage { Error = Some err; Csrfinput = makeCSRFinput csrf })
+                        >=> withDebugLog err
+                    | Choice1Of2 user -> authenticateUser user
+                | _ -> Views.BadRequest
+                )
+        ]
 
 module Directory =
     let page = Views.genericPage "" "Directory"
