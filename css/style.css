@@ -181,3 +181,23 @@ footer p {
     margin: 8px auto;
     width: 304px;
 }
+
+/* TABLE */
+thead {
+    font-weight: bold;
+}
+table#directory {
+    width: 60%;
+}
+@media(max-width: 800px) {
+    table#directory {
+        width: 100%;
+    }
+}
+table#directory, table#directory td, table#directory tr {
+    border: 1px lightgray solid;
+    border-collapse: collapse;
+}
+table#directory td:nth-child(4), table#directory td:nth-child(5), table#directory td:nth-child(6) {
+    text-align: center;
+}

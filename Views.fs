@@ -45,6 +45,10 @@ let testPage (viewModel:TestPageViewModel) =
 let simplePage fileName =
     DotLiquid.page fileName ()
 
+type DirectoryPageViewModel = {Users : UserData seq}
+let directoryPage (viewModel:DirectoryPageViewModel) =
+    DotLiquid.page "directory.html" viewModel
+
 type TestEnvironmentViewModel = {TestTitle : string; TestTime : TimeSpan; QuestionCount : int}
 let testEnvironment (testType:Domain.QuestionType) =
     let time = testTime testType

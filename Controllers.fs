@@ -64,7 +64,7 @@ module Register =
         ]
 
 module Directory =
-    let page = Views.genericPage "" "Directory"
+    let page = request (fun _ -> Views.directoryPage {Users = getAllUserData()})
 
 module Profile =
     let page id = Views.genericPage "" (sprintf "Profile of %d" id)

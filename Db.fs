@@ -59,6 +59,13 @@ let getUserData (usr:User) =
     getDbUserData usr |> Option.map mapUserData 
     |> Option.get
 
+let getAllUserData() =
+    query {
+        for userData in db.Main.UserData do
+        sortBy userData.Team
+        select userData
+    } |> Seq.map mapUserData |> Seq.cache
+
 let getDbUser email =
     query {
         for user in db.Main.User do
