@@ -1,6 +1,6 @@
 module Routes
 
-type IntPath = PrintfFormat<(int -> string),unit,string,string,int>
+type IntPath = PrintfFormat<(int64 -> string),unit,string,string,int64>
 
 let index = "/"
 let materials = "/materials"
@@ -10,7 +10,7 @@ let logout = "/logout"
 let register = "/register"
 
 let directory = "/directory"
-let profile : IntPath = "/profile/%d"
+let profile : IntPath = "/profile/%i"
 
 module Account =
     let private prefix = "/account"

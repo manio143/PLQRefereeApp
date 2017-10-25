@@ -26,8 +26,8 @@ let notLoggedOn action =
 let loggedAdmin action =
     loggedOn (session (function
         | LoggedIn (_, user, _, _) -> if user.IsAdmin() then action
-                                      else Views.Forbidden
-        | _ -> Views.Unauthorized ))
+                                      else Views.Forbidden Authenticated
+        | _ -> Views.Unauthorized NotAuthenticated))
 
 let authenticateUser (user:Domain.User) =
     session (fun _ ->

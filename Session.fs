@@ -75,7 +75,7 @@ let POST (action:WebPart) httpContext =
         let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)
         match r with
         | Some x -> return! (newCsrfToken >=> action) x
-        | None -> return! (withDebugLog "CSRF validation failed." >=> Views.CSRFValidationFailed) httpContext
+        | None -> return! (withDebugLog "CSRF validation failed." >=> session (fun sess -> Views.CSRFValidationFailed sess.Authenticated)) httpContext
      }
 
 let sessionWithTest testOption =

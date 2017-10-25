@@ -12,12 +12,22 @@ open Domain
 
 DotLiquid.setTemplatesDir "./templates"
 
-type GenericPageViewModel = {Title : string; Content : string}
-let genericPage title content =
-    DotLiquid.page "generic.html" {Title = title; Content = content}
+type BaseViewModel(title:string, isAuthenticated:AuthenticationState) =
+    let isAuth = isAuthenticated = Authenticated
+    member val Title = title
+    member val IsAuthenticated = isAuth
 
-let error code title =
-    genericPage title (sprintf "<h1>%s</h1>" title) >=> setStatus code
+type GenericPageViewModel(title:string, content:string, isAuthenticated:AuthenticationState) =
+    inherit BaseViewModel(title, isAuthenticated)
+    member val Content = content
+let genericPage title content isAuth =
+    DotLiquid.page "generic.html" (GenericPageViewModel(title, content, isAuth))
+
+let simplePage fileName isAuth =
+    DotLiquid.page fileName (BaseViewModel("", isAuth))
+
+let error code title isAuth =
+    genericPage title (sprintf "<h1>%s</h1>" title) isAuth >=> setStatus code
 
 let NotFound = error HttpCode.HTTP_404 "Not found"
 
@@ -28,28 +38,42 @@ let BadRequest = error HttpCode.HTTP_400 "An unexpected error occured."
 
 let CSRFValidationFailed = error HttpCode.HTTP_400 "The request didn't pass CQRS validation."
 
-let indexPage = DotLiquid.page "main.html" []
+let indexPage =
+    simplePage "main.html" 
 
-type LoginPageViewModel = {Error : string option; Csrfinput : string}
-let loginPage (viewModel:LoginPageViewModel) =
-    DotLiquid.page "login.html" viewModel
+type AuthorizationPageViewModel(error:string option, csrf:CSRF) =
+    inherit BaseViewModel("", NotAuthenticated)
+    member val Error = error
+    member val Csrfinput = Helpers.makeCSRFinput csrf
 
-let registrationPage (viewModel:LoginPageViewModel) =
-    DotLiquid.page "register.html" viewModel
+let loginPage error csrf =
+    DotLiquid.page "login.html" (AuthorizationPageViewModel(error, csrf))
+
+let registrationPage error csrf =
+    DotLiquid.page "register.html" (AuthorizationPageViewModel(error, csrf))
 
 (* TestButton is either <a ..> or explanation why user can't take test *)
-type TestPageViewModel = {Title : string; Summary : string; TestButton : string}
-let testPage (viewModel:TestPageViewModel) =
-    DotLiquid.page "test_page.html" viewModel
+type TestPageViewModel(title:string, summary:string, testButton:string) =
+    inherit BaseViewModel(title, Authenticated)
+    member val Summary = summary
+    member val TestButton = testButton
 
-let simplePage fileName =
-    DotLiquid.page fileName ()
+let testPage title summary testButton =
+    DotLiquid.page "test_page.html" (TestPageViewModel(title, summary, testButton))
 
-type DirectoryPageViewModel = {Users : UserData seq}
-let directoryPage (viewModel:DirectoryPageViewModel) =
-    DotLiquid.page "directory.html" viewModel
+type DirectoryPageViewModel(users:UserData seq, isAuthenticated:AuthenticationState) =
+    inherit BaseViewModel("", isAuthenticated)
+    member val Users = users
 
-type TestEnvironmentViewModel = {TestTitle : string; TestTime : TimeSpan; QuestionCount : int}
+let directoryPage users isAuth =
+    DotLiquid.page "directory.html" (DirectoryPageViewModel(users, isAuth))
+
+type TestEnvironmentViewModel(testTitle:string, testTime:TimeSpan, questionCount:int) =
+    inherit BaseViewModel(testTitle, Authenticated)
+    member val TestTitle = testTitle
+    member val TestTime = testTime
+    member val QuestionCount = questionCount
+
 let testEnvironment (testType:Domain.QuestionType) =
     let time = testTime testType
     let title, questionCount =
@@ -57,4 +81,12 @@ let testEnvironment (testType:Domain.QuestionType) =
         | AR -> "Test na sędziego pomocniczego", 25
         | SR -> "Test na sędziego zniczowego", 25
         | HR -> "Test na sędziego głównego", 50
-    DotLiquid.page "test.html" {TestTitle = title; TestTime = time; QuestionCount = questionCount}
+    DotLiquid.page "test.html" (TestEnvironmentViewModel(title, time, questionCount))
+
+DotLiquid.Template.RegisterSafeType(typeof<BaseViewModel>, [|"Title"; "IsAuthenticated"|])
+DotLiquid.Template.RegisterSafeType(typeof<GenericPageViewModel>, [|"Title"; "IsAuthenticated"; "Content"|])
+DotLiquid.Template.RegisterSafeType(typeof<AuthorizationPageViewModel>, [|"Title"; "IsAuthenticated"; "Error"; "Csrfinput"|])
+DotLiquid.Template.RegisterSafeType(typeof<TestPageViewModel>, [|"Title"; "IsAuthenticated"; "Summary"; "TestButton"|])
+DotLiquid.Template.RegisterSafeType(typeof<DirectoryPageViewModel>, [|"Title"; "IsAuthenticated"; "Users"|])
+DotLiquid.Template.RegisterSafeType(typeof<TestEnvironmentViewModel>, [|"Title"; "IsAuthenticated"; "TestTitle"; "TestTime"; "QuestionCount"|])
+DotLiquid.Impl.tryRegisterTypeTree (typeof<UserData>)

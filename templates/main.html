@@ -22,7 +22,13 @@
             <a href="/test/HR">Test-HR</a>
         </nav>
         <nav>
-            <a href="/login">Login</a>
+            {% if model.Is_Authenticated %}
+            <a href="/account/details">Profil</a>
+            <a href="/logout">Wyloguj</a>
+            {% else %}
+            <a href="/login">Zaloguj</a>
+            <a href="/register">Rejestracja</a>
+            {% endif %}
         </nav>
     </header>
     <main>

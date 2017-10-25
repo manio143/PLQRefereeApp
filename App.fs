@@ -37,7 +37,7 @@ let app =
 
         path Routes.databaseBackup >=> loggedAdmin (Files.file "database.sqlite")
 
-        Views.NotFound
+        (Session.session (fun sess -> Views.NotFound sess.Authenticated))
     ]
 
 let serverConfig = 

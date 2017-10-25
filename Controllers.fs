@@ -13,17 +13,17 @@ open Db
 open Domain
 
 module Index =
-    let page = Views.indexPage
+    let page = session (fun sess -> Views.indexPage sess.Authenticated)
 
 module Materials =
-    let page = Views.simplePage "materials.html"
+    let page = session (fun sess -> Views.simplePage "materials.html" sess.Authenticated)
 
 module Login =
     open Authentication
     let page = 
         choose [
             GET >=> (notLoggedOn <| withCSRF (fun csrf -> 
-                Views.loginPage { Error = None; Csrfinput = makeCSRFinput csrf }))
+                Views.loginPage None csrf ))
             POST << notLoggedOn <| request (fun httpReq ->
                         let email = postData httpReq "email"
                         let password = postData httpReq "password"
@@ -31,7 +31,7 @@ module Login =
                         | Some user -> authenticateUser user
                         | None ->
                             withCSRF (fun csrf -> 
-                            Views.loginPage { Error = Some "Invalid login credentials"; Csrfinput = makeCSRFinput csrf })
+                            Views.loginPage (Some "Invalid login credentials") csrf)
                             >=> withDebugLog "Invalid login credentials"
                     )
         ]
@@ -44,7 +44,7 @@ module Register =
     let page =
         choose [
             GET >=> (notLoggedOn <| withCSRF (fun csrf ->
-                Views.registrationPage { Error = None; Csrfinput = makeCSRFinput csrf }))
+                Views.registrationPage None csrf ))
             POST << notLoggedOn <| request (fun httpReq ->
                 let email = postData httpReq "email"
                 let password = postData httpReq "password"
@@ -56,25 +56,33 @@ module Register =
                     match Db.registerUser email_ password_ name_ surname_ team_ with
                     | Choice2Of2 err -> 
                         withCSRF (fun csrf ->
-                        Views.registrationPage { Error = Some err; Csrfinput = makeCSRFinput csrf })
+                        Views.registrationPage (Some err) csrf)
                         >=> withDebugLog err
                     | Choice1Of2 user -> authenticateUser user
-                | _ -> Views.BadRequest
+                | _ -> Views.BadRequest NotAuthenticated
                 )
         ]
 
 module Directory =
-    let page = request (fun _ -> Views.directoryPage {Users = getAllUserData()})
+    let page = session (fun sess -> Views.directoryPage (getAllUserData()) sess.Authenticated)
 
 module Profile =
-    let page id = Views.genericPage "" (sprintf "Profile of %d" id)
+    let page id =
+        session (fun sess ->
+            match getUser id with
+            | Some user ->
+                let usrData = getUserData user
+                let name = sprintf "%s %s" usrData.Name usrData.Surname
+                Views.genericPage name (sprintf "Profile of %s" name) sess.Authenticated
+            | _ -> Views.NotFound sess.Authenticated
+        )
 
 module Account =
-    let page = Views.genericPage "" "Account details"
+    let page = Views.genericPage "" "Account details" Authenticated
 
 module Tests =
     (* The summary of present certificates and a list of taken tests [Date; Type; Time; Mark] *)
-    let page = Views.genericPage "" "Tests"
+    let page = Views.genericPage "" "My Tests" Authenticated
     
     module TestEnvironment =
         let createTest testType user =
@@ -87,20 +95,20 @@ module Tests =
                             | HR -> getHRQuestions() |> Seq.scramble |> Seq.take 50
             newTest user testType questions
         let action (req:HttpRequest) =
-            match postData req "test" with
-            | Some testType_ -> 
-                let testType = questionType testType_
-                session (fun sess ->
-                    if sess.User.IsNone then Views.BadRequest
+            session (fun sess ->
+                match postData req "test" with
+                | Some testType_ -> 
+                    let testType = questionType testType_
+                    if sess.User.IsNone then Views.BadRequest sess.Authenticated
                     else
                         let usrData = getUserData sess.User.Value
                         match usrData.CanTakeTest testType with
                         | Choice1Of2 true ->
                             let test = createTest testType sess.User.Value
                             sessionWithTest (Some test.Value.Id) >=> Views.testEnvironment testType
-                        | _ -> Views.BadRequest
-                )
-            | None -> Views.BadRequest
+                        | _ -> Views.BadRequest sess.Authenticated
+                | None -> Views.BadRequest sess.Authenticated
+            )
         let page = POST <| request action
         let jsonResponse (questions:Question array) (started:System.DateTime) (time:System.TimeSpan) custom =
             OK <| (sprintf "{\"questions\":%s, \"started\":%s, \"time\":{\"minutes\":%d, \"seconds\":%d}%s}"
@@ -156,20 +164,19 @@ module Tests =
                 match sess.User with
                 | Some usr ->
                     let usrData = getUserData usr
-                    let viewModel = 
-                        let testValue = testType.ToString().ToLower()
-                        let link = 
-                            match usrData.CanTakeTest testType with
-                            | Choice1Of2 true ->
-                                "<form action='/test' method='POST'><input type='submit' value='Przejdź do testu'>" + (makeCSRFinput sess.Csrf) + "<input type='hidden' name=\"test\" value=\"" + testValue + "\"></form>"
-                            | Choice1Of2 false ->
-                                "<p>Ten test został przez ciebie już zaliczony.</p>"
-                            | Choice2Of2 None -> "<p>Nie spełniasz wszystkich wymagań, aby być dopuszczonym do tego testu</p>"
-                            | Choice2Of2 (Some date) ->
-                                "<p>Wygląda na to, że nie możesz pisać tego testu do <strong>" + date.ToString("dd-MM-yyyy H:mm") + "</strong></p>"
-                        {Summary = testSummary; TestButton = link; Title = ("Test " + testType.ToString()); }
-                    Views.testPage viewModel
-                | None -> Views.BadRequest )
+                    let testValue = testType.ToString().ToLower()
+                    let link = 
+                        match usrData.CanTakeTest testType with
+                        | Choice1Of2 true ->
+                            "<form action='/test' method='POST'><input type='submit' value='Przejdź do testu'>" + (makeCSRFinput sess.Csrf) + "<input type='hidden' name=\"test\" value=\"" + testValue + "\"></form>"
+                        | Choice1Of2 false ->
+                            "<p>Ten test został przez ciebie już zaliczony.</p>"
+                        | Choice2Of2 None -> "<p>Nie spełniasz wszystkich wymagań, aby być dopuszczonym do tego testu</p>"
+                        | Choice2Of2 (Some date) ->
+                            "<p>Wygląda na to, że nie możesz pisać tego testu do <strong>" + date.ToString("dd-MM-yyyy H:mm") + "</strong></p>"
+                    Views.testPage ("Test " + testType.ToString()) testSummary link
+                | None -> Views.BadRequest sess.Authenticated
+            )
     module AR =
         let page = TestPage.page AR "<p>Test na sędziego pomocniczego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
         <ul>

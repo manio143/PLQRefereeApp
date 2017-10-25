@@ -110,6 +110,8 @@ let testQuestionCount testType =
     | AR | SR -> 25
     | HR -> 50
 
+type AuthenticationState = Authenticated | NotAuthenticated
+
 type CSRF = string
 type SessionId = string
 type TestId = int64
@@ -133,3 +135,7 @@ type Session =
             match this with
             | NotLoggedIn _ -> None
             | LoggedIn (_, _, _, test) -> test
+        member this.Authenticated =
+            match this with
+            | LoggedIn _ -> Authenticated
+            | NotLoggedIn _ -> NotAuthenticated
