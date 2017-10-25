@@ -180,7 +180,16 @@ type Session with
         | Some tid -> getTest tid
         | None -> None
 
+let cleanUnusedTests () =
+    query {
+         for test in db.Main.Test do
+             where(test.Finished.IsNone && System.DateTime.Now - test.Started.Value > System.TimeSpan(1, 0, 0, 0))
+             select test
+    } |> Seq.iter (fun x -> x.Delete())
+    db.SubmitUpdates()
+
 let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
+    do cleanUnusedTests()
     let test = db.Main.Test.Create()
     test.Started <- None
     test.UserId <- user.Id
