@@ -236,6 +236,7 @@ function generateView(testData, root, submitAndClock) {
                     let testData = JSON.parse(response);
                     wrapper.remove();
                     generateView(testData, root, false);
+                    document.scrollingElement.scrollTop = 0;
                 }, genericErrorHandler, withCSRF);
             }
         }
