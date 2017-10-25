@@ -201,3 +201,29 @@ table#directory, table#directory td, table#directory tr {
 table#directory td:nth-child(4), table#directory td:nth-child(5), table#directory td:nth-child(6) {
     text-align: center;
 }
+
+.flex-wrapper {
+    display: flex;
+}
+@media(max-width: 650px) {
+    .flex-wrapper {
+        flex-direction: column;
+    }
+}
+.flex-wrapper > div {
+    flex: 1;
+}
+
+a.disabled-link, a.disabled-link:hover, a.disabled-link:visited {
+    color: grey;
+    text-decoration: none;
+}
+
+#settings a {
+    margin-top: 4px;
+    display: inline-block;
+}
+
+span, strong, emph {
+    display: inline-block;
+}

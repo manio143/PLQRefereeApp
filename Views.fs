@@ -83,10 +83,20 @@ let testEnvironment (testType:Domain.QuestionType) =
         | HR -> "Test na sędziego głównego", 50
     DotLiquid.page "test.html" (TestEnvironmentViewModel(title, time, questionCount))
 
+type ProfileViewModel(user:UserData, isAuthenticated:AuthenticationState) =
+    inherit BaseViewModel(sprintf "%s %s" user.Name user.Surname, isAuthenticated)
+    member val User = user
+
+let profilePage user isAuth =
+    DotLiquid.page "profile.html" (ProfileViewModel(user, isAuth))
+let accountPage user isAuth =
+    DotLiquid.page "account.html" (ProfileViewModel(user, isAuth))
+
 DotLiquid.Template.RegisterSafeType(typeof<BaseViewModel>, [|"Title"; "IsAuthenticated"|])
 DotLiquid.Template.RegisterSafeType(typeof<GenericPageViewModel>, [|"Title"; "IsAuthenticated"; "Content"|])
 DotLiquid.Template.RegisterSafeType(typeof<AuthorizationPageViewModel>, [|"Title"; "IsAuthenticated"; "Error"; "Csrfinput"|])
 DotLiquid.Template.RegisterSafeType(typeof<TestPageViewModel>, [|"Title"; "IsAuthenticated"; "Summary"; "TestButton"|])
 DotLiquid.Template.RegisterSafeType(typeof<DirectoryPageViewModel>, [|"Title"; "IsAuthenticated"; "Users"|])
 DotLiquid.Template.RegisterSafeType(typeof<TestEnvironmentViewModel>, [|"Title"; "IsAuthenticated"; "TestTitle"; "TestTime"; "QuestionCount"|])
+DotLiquid.Template.RegisterSafeType(typeof<ProfileViewModel>, [|"Title"; "IsAuthenticated"; "User"|])
 DotLiquid.Impl.tryRegisterTypeTree (typeof<UserData>)

@@ -72,13 +72,15 @@ module Profile =
             match getUser id with
             | Some user ->
                 let usrData = getUserData user
-                let name = sprintf "%s %s" usrData.Name usrData.Surname
-                Views.genericPage name (sprintf "Profile of %s" name) sess.Authenticated
+                Views.profilePage usrData sess.Authenticated
             | _ -> Views.NotFound sess.Authenticated
         )
 
 module Account =
-    let page = Views.genericPage "" "Account details" Authenticated
+    let page = session (fun sess ->
+            let usrData = getUserData sess.User.Value
+            Views.accountPage usrData sess.Authenticated
+        )
 
 module Tests =
     (* The summary of present certificates and a list of taken tests [Date; Type; Time; Mark] *)
