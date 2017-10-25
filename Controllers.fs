@@ -18,6 +18,9 @@ module Index =
 module Materials =
     let page = session (fun sess -> Views.simplePage "materials.html" sess.Authenticated)
 
+module Payment =
+    let page = session (fun sess -> Views.simplePage "payment.html" sess.Authenticated)
+
 module Login =
     open Authentication
     let page = 
@@ -202,4 +205,4 @@ module Tests =
         </ul>"
 
     module HR =
-        let page = TestPage.page HR "<p>Test na sędziego głównego ma za zadanie sprawdzić twoją wiedzę z całego zakresu zasad gry w Quidditcha. Obowiązki sędziego głównego są opisane w rozdziale 8.1. Sędzia główny. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z całego Rulebooka!</p><p>Aby podejść do testu na sędziego głównego należy uiścić opłatę za test [detale...]. Trzeba również mieć zaliczone testy na sędziego pomocniczego i zniczowego.</p>"
+        let page = TestPage.page HR "<p>Test na sędziego głównego ma za zadanie sprawdzić twoją wiedzę z całego zakresu zasad gry w Quidditcha. Obowiązki sędziego głównego są opisane w rozdziale 8.1. Sędzia główny. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z całego Rulebooka!</p><p>Aby podejść do testu na sędziego głównego należy uiścić opłatę za test w wysokości 35zł. Szczegółowe informacje dotyczące płatności znajdziesz <a href=\"/payment\">tutaj</a>.</p><p>Trzeba również mieć zaliczone testy na sędziego pomocniczego i zniczowego.</p>"

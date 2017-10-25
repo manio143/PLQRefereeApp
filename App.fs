@@ -14,6 +14,7 @@ let app =
     choose [
         path Routes.index >=> Index.page
         path Routes.materials >=> Materials.page
+        path Routes.payment >=> Payment.page
         
         path Routes.login >=> Login.page
         path Routes.logout >=> Login.reset
@@ -22,7 +23,7 @@ let app =
         path Routes.directory >=> Directory.page
         pathScan Routes.profile Profile.page
 
-        path Routes.Account.myTests >=> loggedOn Tests.page
+        //path Routes.Account.myTests >=> loggedOn Tests.page
         path Routes.Account.myAccount >=> loggedOn Account.page
 
         path Routes.Tests.AR >=> loggedOn Tests.AR.page

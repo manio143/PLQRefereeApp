@@ -224,6 +224,6 @@ a.disabled-link, a.disabled-link:hover, a.disabled-link:visited {
     display: inline-block;
 }
 
-span, strong, emph {
+span, strong, em {
     display: inline-block;
 }

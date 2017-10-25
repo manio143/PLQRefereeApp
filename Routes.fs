@@ -4,6 +4,7 @@ type IntPath = PrintfFormat<(int64 -> string),unit,string,string,int64>
 
 let index = "/"
 let materials = "/materials"
+let payment = "/payment"
 
 let login = "/login"
 let logout = "/logout"
