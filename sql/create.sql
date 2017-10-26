@@ -46,6 +46,7 @@ CREATE TABLE Answer (
 CREATE TABLE Question (
     id INTEGER PRIMARY KEY,
     question VARCHAR(512) NOT NULL,
+    information VARCHAR(120) NOT NULL DEFAULT '',
     type VARCHAR(2) NOT NULL
 );
 

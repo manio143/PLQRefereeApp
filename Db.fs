@@ -135,7 +135,7 @@ let getQuestions (filter:SqlProvider.dataContext.``main.QuestionEntity`` seq -> 
                                         where(questionsAnswers.Contains(a.Id.Value))
                                         select a
                                 } |> Seq.map (fun a -> a.MapTo<Answer>())
-                            Question (q.Id.Value) (q.Question) (Array.ofSeq answers) (questionType q.Type)
+                            Question (q.Id.Value) (q.Question) (q.Information) (Array.ofSeq answers) (questionType q.Type)
                          )
     |> Seq.cache
 

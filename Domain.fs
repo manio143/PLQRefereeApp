@@ -79,10 +79,11 @@ type Question =
     {
         Id : int64
         Question : string
+        Information : string
         Answers : Answer array
         Type : QuestionType
     }
-let Question id question answers ``type`` = {Id = id; Question = question; Answers = answers; Type = ``type``}
+let Question id question information answers ``type`` = {Id = id; Question = question; Information = information; Answers = answers; Type = ``type``}
 
 type Test =
     {
