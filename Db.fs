@@ -183,7 +183,7 @@ type Session with
 let cleanUnusedTests () =
     query {
          for test in db.Main.Test do
-             where(test.Finished.IsNone && System.DateTime.Now - test.Started.Value > System.TimeSpan(1, 0, 0, 0))
+             where(test.Finished.IsNone && System.DateTime.Now > test.Started.Value.AddDays(1.0))
              select test
     } |> Seq.iter (fun x -> x.Delete())
     db.SubmitUpdates()
