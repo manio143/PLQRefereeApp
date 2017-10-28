@@ -10,8 +10,9 @@ After I finish it, there will be more documentation available here.
 Current roadmap:
 
 - [x] User can login
-- [ ] User can register
+- [x] User can register
 - [x] User can take a test
-- [ ] User can view and edit their profile
-- [ ] User can browse the referee catalog
+- [x] User can viewtheir profile
+- [ ] User can edit their profile
+- [x] User can browse the referee catalog
 - [ ] Admin has an easier life managing tests and users (if there's time)
