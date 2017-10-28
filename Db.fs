@@ -34,7 +34,7 @@ let mapUserData (dbUserData:SqlProvider.dataContext.``main.UserDataEntity``) =
     {
         Id = dbUserData.Id.Value
         Name = dbUserData.Name
-        Surname = dbUserData.Name
+        Surname = dbUserData.Surname
         Team = dbUserData.Team
         Ar = dbUserData.Ar
         Sr = dbUserData.Sr
