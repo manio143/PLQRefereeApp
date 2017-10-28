@@ -94,8 +94,8 @@ module Tests =
             let questions = match testType with
                             | AR -> getARQuestions() |> Seq.scramble |> Seq.take 25
                             | SR -> 
-                                let ar = getARQuestions() |> Seq.scramble |> Seq.take 10 |> Seq.cache
-                                let sr = getSRQuestions() |> Seq.scramble |> Seq.take 15 |> Seq.cache
+                                let ar = getARQuestions() |> Seq.scramble |> Seq.take 5|> Seq.cache
+                                let sr = getSRQuestions() |> Seq.scramble |> Seq.take 20 |> Seq.cache
                                 Seq.append ar sr |> Seq.scramble
                             | HR -> getHRQuestions() |> Seq.scramble |> Seq.take 50
             newTest user testType questions
@@ -193,7 +193,7 @@ module Tests =
         </ul>"
     
     module SR =
-        let page = TestPage.page SR "<p>Test na sędziego zniczowego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego zniczowego. Ponieważ obowiązki sędziego zniczowego częściowo pokrywają się z obowiązkami sędziego pomocniczego oraz często się zdarza, że sędzia zniczowy jest sędzią pomocniczym dopóki znicz nie wejdzie na boisko, to ten test zawiera kilka pytań jakie znajdują się w testach na sędziego pomocnicznego. Zalecamy, aby najpierw zdać test na sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
+        let page = TestPage.page SR "<p>Test na sędziego zniczowego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego zniczowego. Ponieważ obowiązki sędziego zniczowego częściowo pokrywają się z obowiązkami sędziego pomocniczego oraz często się zdarza, że sędzia zniczowy jest sędzią pomocniczym dopóki znicz nie wejdzie na boisko, to ten test zawiera 5 pytań jakie znajdują się w testach na sędziego pomocnicznego. Zalecamy, aby najpierw zdać test na sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
         <ul>
         <li>2. Wyposażenie i wymiary boiska</li>
         <li>3.3. Zatrzymanie gry</li>
@@ -205,4 +205,4 @@ module Tests =
         </ul>"
 
     module HR =
-        let page = TestPage.page HR "<p>Test na sędziego głównego ma za zadanie sprawdzić twoją wiedzę z całego zakresu zasad gry w Quidditcha. Obowiązki sędziego głównego są opisane w rozdziale 8.1. Sędzia główny. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z całego Rulebooka!</p><p>Aby podejść do testu na sędziego głównego należy uiścić opłatę za test w wysokości 35zł. Szczegółowe informacje dotyczące płatności znajdziesz <a href=\"/payment\">tutaj</a>.</p><p>Trzeba również mieć zaliczone testy na sędziego pomocniczego i zniczowego.</p>"
+        let page = TestPage.page HR "<p>Test na sędziego głównego ma za zadanie sprawdzić twoją wiedzę z całego zakresu zasad gry w Quidditcha. Obowiązki sędziego głównego są opisane w rozdziale 8.1. Sędzia główny. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z całego Rulebooka!</p><p>Aby podejść do testu na sędziego głównego należy uiścić opłatę za test w wysokości 35zł. Szczegółowe informacje dotyczące płatności znajdziesz <strong><a href=\"/payment\">tutaj</a></strong>.</p><p>Trzeba również mieć zaliczone testy na sędziego pomocniczego i zniczowego.</p>"

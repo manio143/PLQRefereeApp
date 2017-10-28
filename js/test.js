@@ -192,6 +192,7 @@ function generateView(testData, root, submitAndClock) {
         question.innerHTML = q["Question@"];
         let awrapper = createElement("div", undefined, "answer-wrapper");
         let char = 'A';
+        let isCorrected = false;
         for (a of q["Answers@"]) {
             let isolator = document.createElement("div");
             let id = q["Id@"] + ":" + a["Id@"];
@@ -210,13 +211,21 @@ function generateView(testData, root, submitAndClock) {
             label.for = id;
             label.innerHTML = (a["Correct@"] ? "<span class=\"red bold\">":"") + char + ". " +
                             (a["Correct@"] ? "</span>":"") + a["Answer@"];
+            if(submitAndClock) label.onclick = () => document.getElementById(id).click();
             char = nextChar(char);
+            if(a["Correct@"])
+                isCorrected = true;
             isolator.appendChild(label);
             awrapper.appendChild(isolator);
         }
         qwrapper.appendChild(header);
         qwrapper.appendChild(question);
         qwrapper.appendChild(awrapper);
+        if(isCorrected) {
+            let info = createElement("p", undefined, "question-info");
+            info.innerHTML = q["Information@"];
+            qwrapper.appendChild(info);
+        }
         wrapper.appendChild(qwrapper);
     }
     if(submitAndClock) {

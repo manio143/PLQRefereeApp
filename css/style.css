@@ -78,10 +78,14 @@ main a:hover {
     margin: 1em 0 0.5em 0
 }
 
-#test p.question {
+#test p.question, #test p.question-info {
     width: 100%;
     margin: 0 auto 0.6em auto;
 }
+#test p.question-info {
+    font-weight: bold;
+}
+
 #test .answer-wrapper {
     width: 100%;
     margin: 0 auto;
@@ -89,6 +93,7 @@ main a:hover {
 
 #test div.answer-wrapper div {
     display: table;
+    margin: 8px 0;
 }
 #test div.answer-wrapper input {
     display: table-cell;
@@ -108,7 +113,7 @@ p.clock {
     color: firebrick;
 }
 div.clock-wrapper {
-    background-color: rgba(178, 34, 34, 0.73)
+    background-color: rgba(178, 34, 34, 0.65)
 }
 div.clock {
     background-color: firebrick;
@@ -226,4 +231,7 @@ a.disabled-link, a.disabled-link:hover, a.disabled-link:visited {
 
 span, strong, em {
     display: inline-block;
+}
+#test span {
+    display: inline;
 }

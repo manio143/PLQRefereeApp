@@ -7,7 +7,7 @@ CREATE TABLE User (
 );
 
 CREATE TABLE Test (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     userId INTEGER NOT NULL,
     started DATETIME,
     finished DATETIME,
