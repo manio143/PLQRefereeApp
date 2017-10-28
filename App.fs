@@ -23,7 +23,6 @@ let app =
         path Routes.directory >=> Directory.page
         pathScan Routes.profile Profile.page
 
-        //path Routes.Account.myTests >=> loggedOn Tests.page
         path Routes.Account.myAccount >=> loggedOn Account.page
 
         path Routes.Tests.AR >=> loggedOn Tests.AR.page
@@ -35,8 +34,6 @@ let app =
         path Routes.Tests.answerTest >=> Tests.TestEnvironment.answerTest
 
         pathRegex "(.*)\.(css|jpg|svg|png|gif|js)" >=> Files.browseHome
-
-        path Routes.databaseBackup >=> loggedAdmin (Files.file "database.sqlite")
 
         (Session.session (fun sess -> Views.NotFound sess.Authenticated))
     ]

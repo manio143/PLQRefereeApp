@@ -85,10 +85,7 @@ module Account =
             Views.accountPage usrData sess.Authenticated
         )
 
-module Tests =
-    (* The summary of present certificates and a list of taken tests [Date; Type; Time; Mark] *)
-    let page = Views.genericPage "" "My Tests" Authenticated
-    
+module Tests =    
     module TestEnvironment =
         let createTest testType user =
             let questions = match testType with
@@ -193,7 +190,7 @@ module Tests =
         </ul>"
     
     module SR =
-        let page = TestPage.page SR "<p>Test na sędziego zniczowego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego zniczowego. Ponieważ obowiązki sędziego zniczowego częściowo pokrywają się z obowiązkami sędziego pomocniczego oraz często się zdarza, że sędzia zniczowy jest sędzią pomocniczym dopóki znicz nie wejdzie na boisko, to ten test zawiera 5 pytań jakie znajdują się w testach na sędziego pomocnicznego. Zalecamy, aby najpierw zdać test na sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
+        let page = TestPage.page SR "<p>Test na sędziego zniczowego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego zniczowego. Ponieważ obowiązki sędziego zniczowego częściowo pokrywają się z obowiązkami sędziego pomocniczego oraz często się zdarza, że sędzia zniczowy jest sędzią pomocniczym dopóki znicz nie wejdzie na boisko, to <u>ten test zawiera 5 pytań jakie znajdują się w testach na sędziego pomocnicznego</u>. Zalecamy, aby najpierw zdać test na sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
         <ul>
         <li>2. Wyposażenie i wymiary boiska</li>
         <li>3.3. Zatrzymanie gry</li>
