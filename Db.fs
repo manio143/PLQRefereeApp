@@ -86,7 +86,7 @@ let registerUser email password name surname team =
     else if System.String.IsNullOrWhiteSpace(email) || System.String.IsNullOrWhiteSpace(password) then Choice2Of2 "Nieprawidłowe dane logowania."
     else
         (* open transaction *)
-        let user = db.Main.User.``Create(administrator, email, passphrase)``(true, email, createPassphrase password)
+        let user = db.Main.User.``Create(administrator, email, passphrase)``(false, email, createPassphrase password)
         let userData = db.Main.UserData.Create()
         userData.Id <- user.Id
         userData.Name <- name
