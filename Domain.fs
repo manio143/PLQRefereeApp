@@ -4,9 +4,10 @@ open System
 
 type User =
     {
-        Id : int64
+        Id : int
         Email : string
         Administrator : bool
+        Reset : string option
     }
     with
         member this.IsAdmin () = this.Administrator
@@ -21,13 +22,13 @@ let questionType (s:string) =
 
 type UserData =
     {
-        Id : int64
+        Id : int
         Name : string
         Surname : string
         Team : string
-        Ar : int64 option
-        Sr : int64 option
-        Hr : int64 option
+        Ar : int option
+        Sr : int option
+        Hr : int option
         Arcooldown : DateTime option
         Srcooldown : DateTime option
         Hrcooldown : DateTime option
@@ -70,14 +71,14 @@ type UserData =
 (* Id, correct, contents *)
 type Answer = 
     {
-        Id : int64
+        Id : int
         Correct : bool
         Answer : string
     }
 
 type Question =
     {
-        Id : int64
+        Id : int
         Question : string
         Information : string
         Answers : Answer array
@@ -87,7 +88,7 @@ let Question id question information answers ``type`` = {Id = id; Question = que
 
 type Test =
     {
-        Id : int64
+        Id : int
         Questions : Question array
         Answers : Answer option array
         StartedTime : System.DateTime option
@@ -115,7 +116,7 @@ type AuthenticationState = Authenticated | NotAuthenticated
 
 type CSRF = string
 type SessionId = string
-type TestId = int64
+type TestId = int
 type Session =
     | NotLoggedIn of SessionId * CSRF
     | LoggedIn of SessionId * User * CSRF * TestId option

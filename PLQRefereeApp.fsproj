@@ -106,13 +106,19 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.2'">
       <ItemGroup>
-        <Reference Include="FSharp.Data.SqlProvider">
-          <HintPath>packages\SQLProvider\lib\FSharp.Data.SqlProvider.dll</HintPath>
+        <Reference Include="MySql.Data">
+          <HintPath>packages\MySql.Data\lib\net45\MySql.Data.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="Mono.Data.Sqlite">
-          <HintPath>packages\SQLProvider\lib\Mono.Data.Sqlite.dll</HintPath>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.2'">
+      <ItemGroup>
+        <Reference Include="FSharp.Data.SqlProvider">
+          <HintPath>packages\SQLProvider\lib\FSharp.Data.SqlProvider.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>

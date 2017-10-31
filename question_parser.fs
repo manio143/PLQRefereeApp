@@ -9,8 +9,8 @@ let readAQuestion typ (lines:string array) i qid aid =
     let inca = [lines.[i+2], aid+4; lines.[i+3], aid+3; lines.[i+4], aid+2]
     let info = lines.[i+5]
     let qsql = sprintf "INSERT INTO Question (id, question, information, type) VALUES (%d, '%s', '%s', '%s');\n" (qid+1) q info typ
-    let casql = sprintf "INSERT INTO Answer (id, correct, answer) VALUES (%d, 1, '%s');\n" (aid+1) ca
-    let incasql = inca |> List.fold (fun acc (x,id) -> sprintf "INSERT INTO Answer (id, correct, answer) VALUES (%d, 0, '%s');\n" id x + acc) ""
+    let casql = sprintf "INSERT INTO Answer (id, correct, answer) VALUES (%d, TRUE, '%s');\n" (aid+1) ca
+    let incasql = inca |> List.fold (fun acc (x,id) -> sprintf "INSERT INTO Answer (id, correct, answer) VALUES (%d, FALSE, '%s');\n" id x + acc) ""
     let qasql = [1..4] |> List.fold (fun acc i -> (+) acc <| sprintf "INSERT INTO QuestionsAnswer VALUES (%d, %d);\n" (qid+1) (aid+i)) ""
     (Some (qsql+casql+incasql+qasql), qid+1, aid+4)
 

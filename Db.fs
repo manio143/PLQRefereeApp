@@ -7,15 +7,12 @@ open Domain
 open Helpers
 
 [<Literal>]
-let connectionString = 
-    "Data Source=" + 
-    __SOURCE_DIRECTORY__ + @"/database.sqlite;" + 
-    "Version=3;foreign keys=true"
+let connectionString = "Host=docker;Database=Main;Username=root;Password=root"
 [<Literal>]
-let resolutionPath = __SOURCE_DIRECTORY__ + @"/packages/System.Data.SQLite.Core/lib/net46"
+let resolutionPath = @"packages/MySql.Data/lib/net452" //SET
 
 type SqlProvider = SqlDataProvider<
-                    Common.DatabaseProviderTypes.SQLITE,
+                    Common.DatabaseProviderTypes.MYSQL,
                     ConnectionString = connectionString,
                     ResolutionPath = resolutionPath,
                     CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL,
@@ -25,14 +22,16 @@ let db = SqlProvider.GetDataContext()
 
 let getUser id =
     query {
-        for user in db.Main.User do
-        where (user.Id = Some(id))
+        for user in db.Main.Users do
+        where (user.Id = id)
         select user
     } |> Seq.first |> Option.map (fun usr -> usr.MapTo<User>())
 
-let mapUserData (dbUserData:SqlProvider.dataContext.``main.UserDataEntity``) =
+let bool (sbyte:sbyte) = not ((=) sbyte 0y)
+
+let mapUserData (dbUserData:SqlProvider.dataContext.``Main.UserDataEntity``) =
     {
-        Id = dbUserData.Id.Value
+        Id = dbUserData.Id
         Name = dbUserData.Name
         Surname = dbUserData.Surname
         Team = dbUserData.Team
@@ -42,16 +41,24 @@ let mapUserData (dbUserData:SqlProvider.dataContext.``main.UserDataEntity``) =
         Arcooldown = dbUserData.Arcooldown
         Srcooldown = dbUserData.Srcooldown
         Hrcooldown = dbUserData.Hrcooldown
-        ArIrdp = dbUserData.ArIrdp
-        SrIrdp = dbUserData.SrIrdp
-        HrIrdp = dbUserData.HrIrdp
-        HrPayment = dbUserData.HrPayment
+        ArIrdp = dbUserData.ArIrdp |> bool
+        SrIrdp = dbUserData.SrIrdp |> bool
+        HrIrdp = dbUserData.HrIrdp |> bool
+        HrPayment = dbUserData.HrPayment |> bool
+    }
+
+let userMap (user:SqlProvider.dataContext.``Main.UsersEntity``) =
+    {
+        Id = user.Id
+        Email = user.Email
+        Administrator = user.Administrator |> bool
+        Reset = user.Reset
     }
 
 let getDbUserData (usr:User) =
     query {
         for userData in db.Main.UserData do
-        where (userData.Id = Some(usr.Id))
+        where (userData.Id = usr.Id)
         select userData
     } |> Seq.first 
 
@@ -68,13 +75,13 @@ let getAllUserData() =
 
 let getDbUser email =
     query {
-        for user in db.Main.User do
+        for user in db.Main.Users do
             where (user.Email = email)
             select user
     } |> Seq.first
 
 let emailExists email = 
-    db.Main.User.Any(fun u -> u.Email = email)
+    db.Main.Users.Any(fun u -> u.Email = email)
 
 
 let createPassphrase passwd =
@@ -85,15 +92,16 @@ let registerUser email password name surname team =
     if emailExists email then Choice2Of2 "Istnieje już konto o podanym adresie email."
     else if System.String.IsNullOrWhiteSpace(email) || System.String.IsNullOrWhiteSpace(password) then Choice2Of2 "Nieprawidłowe dane logowania."
     else
-        (* open transaction *)
-        let user = db.Main.User.``Create(administrator, email, passphrase)``(false, email, createPassphrase password)
+        db.ClearUpdates() |> ignore
+        let user = db.Main.Users.``Create(administrator, email, passphrase)``(0y, email, createPassphrase password)
+        db.SubmitUpdates()
         let userData = db.Main.UserData.Create()
         userData.Id <- user.Id
         userData.Name <- name
         userData.Surname <- surname
         userData.Team <- team
         db.SubmitUpdates()
-        Choice1Of2 (user.MapTo<User>())
+        Choice1Of2 (userMap user)
 
 
 let goodPassword usersPassphrase passwd =
@@ -114,11 +122,11 @@ let verifyUser email password =
 let getDbAnswer id = 
     query { 
         for answ in db.Main.Answer do
-        where(answ.Id = Some(id))
+        where(answ.Id = id)
         select answ
     } |> Seq.first
 
-let getQuestions (filter:SqlProvider.dataContext.``main.QuestionEntity`` seq -> SqlProvider.dataContext.``main.QuestionEntity`` seq) =
+let getQuestions (filter:SqlProvider.dataContext.``Main.QuestionEntity`` seq -> SqlProvider.dataContext.``Main.QuestionEntity`` seq) =
     let questions = query {
         for q in db.Main.Question do
         select q
@@ -127,15 +135,15 @@ let getQuestions (filter:SqlProvider.dataContext.``main.QuestionEntity`` seq -> 
                             let questionsAnswers =
                                 db.Main.QuestionsAnswer |> Seq.cache
                                 |> Seq.map (fun qa -> (qa.QuestionId, qa.AnswerId))
-                                |> Seq.filter (fun (qq, a) -> qq = q.Id.Value)
+                                |> Seq.filter (fun (qq, a) -> qq = q.Id)
                                 |> Seq.map (fun (qq, a) -> a) |> Array.ofSeq
                             let answers = 
                                 query {
                                     for a in db.Main.Answer do
-                                        where(questionsAnswers.Contains(a.Id.Value))
+                                        where(questionsAnswers.Contains(a.Id))
                                         select a
                                 } |> Seq.map (fun a -> a.MapTo<Answer>())
-                            Question (q.Id.Value) (q.Question) (q.Information) (Array.ofSeq answers) (questionType q.Type)
+                            Question (q.Id) (q.Question) (q.Information) (Array.ofSeq answers) (questionType q.Type)
                          )
     |> Seq.cache
 
@@ -152,7 +160,7 @@ let getQuestionsForTest testId =
     }
     |> Seq.map (fun tq ->
         let question = 
-            getQuestions (Seq.filter (fun q -> q.Id.Value = tq.QuestionId)) 
+            getQuestions (Seq.filter (fun q -> q.Id = tq.QuestionId)) 
             |> Seq.exactlyOne
         let answer = tq.AnswerId |> Option.map (fun aid -> (getDbAnswer aid).Value.MapTo<Answer>())
         question, answer
@@ -161,16 +169,16 @@ let getQuestionsForTest testId =
 let getDbTest id =
     query {
         for test in db.Main.Test do
-            where (test.Id = Some(id))
+            where (test.Id = id)
             select test
     } |> Seq.first
    
 let getTest id =
     let dbTest = getDbTest id
-    let test = dbTest |> Option.map (fun (t:SqlProvider.dataContext.``main.TestEntity``) ->
-        let questions, answers = getQuestionsForTest t.Id.Value |> Seq.unzip
+    let test = dbTest |> Option.map (fun (t:SqlProvider.dataContext.``Main.TestEntity``) ->
+        let questions, answers = getQuestionsForTest t.Id |> Seq.unzip
         let user = getUser (t.UserId)
-        {Id = t.Id.Value; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = t.Started; FinishedTime = t.Finished; Type = questionType t.Type; User = user.Value})
+        {Id = t.Id; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = t.Started; FinishedTime = t.Finished; Type = questionType t.Type; User = user.Value})
     //printfn "GET TEST: %A" test
     test
 
@@ -198,10 +206,10 @@ let newTest (user:User) (testType:QuestionType) (questions:Question seq) =
     for q in questions do
         let tq = db.Main.TestQuestion.Create()
         tq.QuestionId <- q.Id
-        tq.TestId <- test.Id.Value
+        tq.TestId <- test.Id
     done
     do db.SubmitUpdates()
-    getTest (test.Id.Value)
+    getTest (test.Id)
 
 let markAnswer testId questionId answerId =
     query {
@@ -272,14 +280,14 @@ let startTest (test:Test) =
 
 let getSessionDbObj sessionId =
     query {
-        for session in db.Main.Session do
+        for session in db.Main.Sessions do
         where (session.SessionId = sessionId)
         select session
     } |> Seq.first
 
 let removeOldSessions () =
     query {
-        for session in db.Main.Session do
+        for session in db.Main.Sessions do
         where (session.Expires <= System.DateTime.Now)
         select session
     } |> Seq.iter (fun s -> s.Delete())
@@ -304,11 +312,10 @@ let saveSession (session:Session) =
         ses.Expires <- tomorrow
         ses.TestId <- session.TestId
     | None ->
-        let ses = db.Main.Session.Create()
+        let ses = db.Main.Sessions.Create()
         ses.SessionId <- session.SessionId
         ses.Csrftoken <- session.Csrf
         ses.Expires <- tomorrow
         if session.User.IsSome then ses.UserId <- Some session.User.Value.Id
         if session.TestId.IsSome then ses.TestId <- session.TestId
     db.SubmitUpdates()
-        

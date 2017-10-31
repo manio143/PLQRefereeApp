@@ -1,6 +1,6 @@
 module Routes
 
-type IntPath = PrintfFormat<(int64 -> string),unit,string,string,int64>
+type IntPath = PrintfFormat<(int -> string),unit,string,string,int>
 
 let index = "/"
 let materials = "/materials"

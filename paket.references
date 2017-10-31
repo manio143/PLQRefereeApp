@@ -1,6 +1,6 @@
 FSharp.Core
 SQLProvider
 Suave
-#Suave.DotLiquid
 DotLiquid
 BCrypt-Official
+MySql.Data
