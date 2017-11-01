@@ -7,36 +7,40 @@ open Suave.RequestErrors
 open Suave.Successful
 open Suave.Logging
 
-open Authentication
+open Session
+open Action
 open Controllers
 open Helpers
 
+let processAction action =
+    session action
+
 let app =
     choose [
-        path Routes.index >=> Index.page
-        path Routes.materials >=> Materials.page
-        path Routes.payment >=> Payment.page
+        path Routes.index >=> processAction Index.page
+        path Routes.materials >=> processAction Materials.page
+        path Routes.payment >=> processAction Payment.page
         
-        path Routes.login >=> Login.page
+        path Routes.login >=> processAction Login.page
         path Routes.logout >=> Login.reset
-        path Routes.register >=> Register.page
+        path Routes.register >=> processAction Register.page
 
-        path Routes.directory >=> Directory.page
-        pathScan Routes.profile Profile.page
+        path Routes.directory >=> processAction Directory.page
+        pathScan Routes.profile (Profile.page >> processAction)
 
-        path Routes.Account.myAccount >=> loggedOn Account.page
+        path Routes.Account.myAccount >=> processAction Account.page
 
-        path Routes.Tests.AR >=> loggedOn Tests.AR.page
-        path Routes.Tests.SR >=> loggedOn Tests.SR.page
-        path Routes.Tests.HR >=> loggedOn Tests.HR.page
-        path Routes.Tests.Test >=> POST >=> loggedOn Tests.TestEnvironment.page
-        path Routes.Tests.startTest >=> Tests.TestEnvironment.startTest
-        path Routes.Tests.finishTest >=> Tests.TestEnvironment.finishTest
-        path Routes.Tests.answerTest >=> Tests.TestEnvironment.answerTest
+        path Routes.Tests.AR >=> processAction Tests.AR.page
+        path Routes.Tests.SR >=> processAction Tests.SR.page
+        path Routes.Tests.HR >=> processAction Tests.HR.page
+        path Routes.Tests.Test >=> processAction Tests.TestEnvironment.page
+        path Routes.Tests.startTest >=> processAction Tests.TestEnvironment.startTest
+        path Routes.Tests.finishTest >=> processAction Tests.TestEnvironment.finishTest
+        path Routes.Tests.answerTest >=> processAction Tests.TestEnvironment.answerTest
 
         pathRegex "(.*)\.(css|jpg|svg|png|gif|js)" >=> Files.browseHome
 
-        (Session.session (fun sess -> Views.NotFound sess.Authenticated))
+        processAction Views.NotFound
     ]
 
 let appWithTrace app =

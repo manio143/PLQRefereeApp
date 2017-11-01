@@ -6,6 +6,7 @@ open Suave.Cookie
 open Suave.State.CookieStateStore
 open Suave.Operators
 
+open Action
 open Domain
 open Db
 open Cookies
@@ -13,26 +14,23 @@ open Session
 open Routes
 
 (* allow user to pass to action if authenticated, otherwise redirect to login *)
-let loggedOn action =
-    session (function
-        | NotLoggedIn _ -> Routes.redirectWithReturnPath Routes.login
-        | LoggedIn _ -> action)
+let loggedOn session (ctx:HttpContext) (action:Action) =
+    match session with
+    | LoggedIn _ -> action
+    | NotLoggedIn _ -> Action.ofWebPart (Routes.redirectWithReturnPath Routes.login)
 
-let notLoggedOn action =
-    session (function
-        | NotLoggedIn _ -> action
-        | LoggedIn _ -> Routes.returnPathOrHome)
+let notLoggedOn session (ctx:HttpContext) (action:Action) =
+    match session with
+    | NotLoggedIn _ -> action
+    | LoggedIn _ -> Action.ofWebPart (Routes.returnPathOrHome)
 
-let loggedAdmin action =
-    loggedOn (session (function
-        | LoggedIn (_, user, _, _) -> if user.IsAdmin() then action
-                                      else Views.Forbidden Authenticated
-        | _ -> Views.Unauthorized NotAuthenticated))
+let loggedAdmin (session:Session) (ctx:HttpContext) (action:Action) =
+    if session.User.IsSome && session.User.Value.IsAdmin then action
+    else Views.Forbidden
 
 let authenticateUser (user:Domain.User) =
-    session (fun _ ->
-                let session = createSession (Some user)
-                saveSession session
-                setSessionCookie session
-            )
+    let session = createSession (Some user)
+    saveSession session
+    setSessionCookie session
     >=> returnPathOrHome
+    |> Action.ofWebPart

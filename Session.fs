@@ -12,6 +12,7 @@ open Db
 open Cookies
 open Helpers
 open Generators
+open Action
 
 let createSession user =
     let sessionId = createSessionId()
@@ -20,14 +21,14 @@ let createSession user =
     | None -> NotLoggedIn (sessionId, csrfToken)
     | Some usr -> LoggedIn (sessionId, usr, csrfToken, None)
 
-let session (action:Session->WebPart) =
+let session (action:Action) =
     context (fun httpContext ->
                 debugLog "Activate session" httpContext
                 let withNewSession () =
                     let session = createSession None
                     verboseLog "  New session created" httpContext
                     do saveSession session
-                    setSessionCookie session >=> withVerboseLog (sprintf "Session: %A" session) >=> action session
+                    setSessionCookie session >=> withVerboseLog (sprintf "Session: %A" session) >=> action session httpContext
                 match getSessionCookie httpContext with
                 | None ->
                     withNewSession ()
@@ -36,54 +37,42 @@ let session (action:Session->WebPart) =
                     | None ->
                         withNewSession ()
                     | Some session ->
-                        withVerboseLog (sprintf "Session: %A" session) >=> action session
+                        withVerboseLog (sprintf "Session: %A" session) >=> action session httpContext
             )
-
-let withSession action = session (fun _ -> action)
 
 let newCsrfToken =
-    session (fun session ->
-                let newCsrf = createCSRFToken ()
-                let session = 
-                    match session with
-                    | NotLoggedIn (id, _) -> NotLoggedIn(id, newCsrf)
-                    | LoggedIn (id, usr, _, test) -> LoggedIn(id, usr, newCsrf, test)
-                saveSession session
-                setSessionCookie session
-            )
+    fun session (ctx:HttpContext) ->
+        let newCsrf = createCSRFToken ()
+        let session = 
+            match session with
+            | NotLoggedIn (id, _) -> NotLoggedIn(id, newCsrf)
+            | LoggedIn (id, usr, _, test) -> LoggedIn(id, usr, newCsrf, test)
+        saveSession session
+        setSessionCookie session
 
-let withCSRF action =
-    session (function session -> action (session.Csrf))
+let validateCSRF csrf (session:Session) = csrf = session.Csrf
 
-let validateCSRF csrf = 
-    session (fun session ->
-            fun x -> async {
-                if csrf = session.Csrf then return Some x
-                else return None
-            }
-    )
-
-let POST (action:WebPart) httpContext =
-    let validateCSRF httpContext =
+let POST =
+    let validateCSRF session httpContext =
         let csrftoken = (postData httpContext.request "csrftoken"
                         >>=> (httpContext.request.header "X-CSRF-Token" |> optionOfChoice)
                         >>=> Some "").Value
         verboseLog (sprintf "csrftoken = %s" csrftoken) httpContext
-        validateCSRF csrftoken httpContext
-    async {
-        verboseLog (sprintf "POST { %s }" (httpContext.request.rawForm |> System.Text.Encoding.UTF8.GetString)) httpContext
-        let! r = ((POST >=> withDebugLog "Validating CSRF token" >=> validateCSRF) httpContext)
-        match r with
-        | Some x -> return! (newCsrfToken >=> action) x
-        | None -> return! (withDebugLog "CSRF validation failed." >=> session (fun sess -> Views.CSRFValidationFailed sess.Authenticated)) httpContext
-     }
+        validateCSRF csrftoken session
+
+    fun sess ctx ->
+        POST >=> withDebugLog "Validating CSRF token"
+        >=> (if validateCSRF sess ctx then newCsrfToken sess ctx
+             else 
+                withDebugLog "CSRF validation failed."
+                >=> Views.CSRFValidationFailed sess ctx
+            )
 
 let sessionWithTest testOption =
-    session (fun session ->
-                let session = 
-                    match session with
-                    | LoggedIn (id, usr, csrf, _) -> LoggedIn(id, usr, csrf, testOption)
-                    | x -> x
-                saveSession session
-                withDebugLog (sprintf "Saved test to session {%A}" testOption) >=> setSessionCookie session
-            )
+    fun session context ->
+        let session = 
+            match session with
+            | LoggedIn (id, usr, csrf, _) -> LoggedIn(id, usr, csrf, testOption)
+            | x -> x
+        saveSession session
+        withDebugLog (sprintf "Saved test to session {%A}" testOption) >=> setSessionCookie session

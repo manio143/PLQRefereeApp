@@ -11,44 +11,43 @@ open Helpers
 open Session
 open Db
 open Domain
+open Action
 
 module Index =
-    let page = session (fun sess -> Views.indexPage sess.Authenticated)
+    let page = Views.indexPage
 
 module Materials =
-    let page = session (fun sess -> Views.simplePage "materials.html" sess.Authenticated)
+    let page = Views.simplePage "materials.html"
 
 module Payment =
-    let page = session (fun sess -> Views.simplePage "payment.html" sess.Authenticated)
+    let page = Views.simplePage "payment.html"
 
 module Login =
-    open Authentication
-    let page = 
+    let page (session:Session) (ctx:HttpContext) = 
         choose [
-            GET >=> (notLoggedOn <| withCSRF (fun csrf -> 
-                Views.loginPage None csrf ))
-            POST << notLoggedOn <| request (fun httpReq ->
+            GET >=> ((notLoggedOn ?> Views.loginPage None session.Csrf) session ctx)
+            (POST >+=> (notLoggedOn ?> fun session ctx ->
+                        let httpReq = ctx.request
                         let email = postData httpReq "email"
                         let password = postData httpReq "password"
                         match Db.verifyUser email password with
-                        | Some user -> authenticateUser user
+                        | Some user -> authenticateUser user session ctx
                         | None ->
-                            withCSRF (fun csrf -> 
-                            Views.loginPage (Some "Invalid login credentials") csrf)
+                            Views.loginPage (Some "Invalid login credentials") session.Csrf session ctx
                             >=> withDebugLog "Invalid login credentials"
-                    )
+                       )
+                ) session ctx
         ]
     let reset =
-        request (fun r ->
+        request (fun _ ->
             Cookies.removeSessionCookie >=> Routes.returnPathOrHome)
 
 module Register =
-    open Authentication
-    let page =
+    let page (session:Session) ctx =
         choose [
-            GET >=> (notLoggedOn <| withCSRF (fun csrf ->
-                Views.registrationPage None csrf ))
-            POST << notLoggedOn <| request (fun httpReq ->
+            GET >=> ((notLoggedOn ?> Views.registrationPage None session.Csrf) session ctx)
+            (POST >+=> (notLoggedOn ?> fun session ctx ->
+                let httpReq = ctx.request
                 let email = postData httpReq "email"
                 let password = postData httpReq "password"
                 let name = postData httpReq "name"
@@ -58,32 +57,29 @@ module Register =
                 | Some email_, Some password_, Some name_, Some surname_, Some team_ ->
                     match Db.registerUser email_ password_ name_ surname_ team_ with
                     | Choice2Of2 err -> 
-                        withCSRF (fun csrf ->
-                        Views.registrationPage (Some err) csrf)
+                        Views.registrationPage (Some err) session.Csrf session ctx
                         >=> withDebugLog err
-                    | Choice1Of2 user -> authenticateUser user
-                | _ -> Views.BadRequest NotAuthenticated
-                )
+                    | Choice1Of2 user -> authenticateUser user session ctx
+                | _ -> Views.BadRequest session ctx
+                )) session ctx
         ]
 
 module Directory =
-    let page = session (fun sess -> Views.directoryPage (getAllUserData()) sess.Authenticated)
+    let page = Views.directoryPage (getAllUserData())
 
 module Profile =
     let page id =
-        session (fun sess ->
-            match getUser id with
-            | Some user ->
-                let usrData = getUserData user
-                Views.profilePage usrData sess.Authenticated
-            | _ -> Views.NotFound sess.Authenticated
-        )
+        match getUser id with
+        | Some user ->
+            let usrData = getUserData user
+            Views.profilePage usrData
+        | _ -> Views.NotFound
 
 module Account =
-    let page = session (fun sess ->
-            let usrData = getUserData sess.User.Value
-            Views.accountPage usrData sess.Authenticated
-        )
+    let page =
+        loggedOn ?> (fun session ctx ->
+                        let usrData = getUserData session.User.Value
+                        Views.accountPage usrData session ctx)
 
 module Tests =    
     module TestEnvironment =
@@ -96,22 +92,23 @@ module Tests =
                                 Seq.append ar sr |> Seq.scramble
                             | HR -> getHRQuestions() |> Seq.scramble |> Seq.take 50
             newTest user testType questions
-        let action (req:HttpRequest) =
-            session (fun sess ->
+        let action (session:Session) ctx =
+            let req = ctx.request
+            (
                 match postData req "test" with
                 | Some testType_ -> 
                     let testType = questionType testType_
-                    if sess.User.IsNone then Views.BadRequest sess.Authenticated
+                    if session.User.IsNone then Views.BadRequest
                     else
-                        let usrData = getUserData sess.User.Value
+                        let usrData = getUserData session.User.Value
                         match usrData.CanTakeTest testType with
                         | Choice1Of2 true ->
-                            let test = createTest testType sess.User.Value
-                            sessionWithTest (Some test.Value.Id) >=> Views.testEnvironment testType
-                        | _ -> Views.BadRequest sess.Authenticated
-                | None -> Views.BadRequest sess.Authenticated
-            )
-        let page = POST <| request action
+                            let test = createTest testType session.User.Value
+                            sessionWithTest (Some test.Value.Id) >+=> Views.testEnvironment testType
+                        | _ -> Views.BadRequest
+                | None -> Views.BadRequest
+            ) session ctx
+        let page = loggedOn ?> POST >+=> action
         let jsonResponse (questions:Question array) (started:System.DateTime) (time:System.TimeSpan) custom =
             OK <| (sprintf "{\"questions\":%s, \"started\":%s, \"time\":{\"minutes\":%d, \"seconds\":%d}%s}"
                     (Json.toJson questions |> utf8) (Json.toJson started |> utf8) time.Minutes time.Seconds
@@ -125,60 +122,60 @@ module Tests =
                                                     |> Seq.scramble 
                                                     |> Array.ofSeq })
                       |> Seq.scramble |> Array.ofSeq
+
         let startTest = 
-            POST <| session (fun sess ->
-                                match sess.Test with
-                                | Some test -> 
-                                    let test = startTest test
-                                    jsonResponse (prepareQuestions test.Questions) test.StartedTime.Value (testTime test.Type) None
-                                | _ -> BAD_REQUEST ""
-                            )
+            loggedOn ?> POST >+=> fun sess ctx ->
+                        match sess.Test with
+                        | Some test -> 
+                            let test = startTest test
+                            jsonResponse (prepareQuestions test.Questions) test.StartedTime.Value (testTime test.Type) None
+                        | _ -> BAD_REQUEST ""
+
         let finishTest =
-            POST <| session (fun sess ->
-                                match sess.Test with
-                                | Some test ->
-                                    let test, mark = finishTest test
-                                    let badQuestions = getIncorrectAnsweredQuestions test
-                                    let additionalJson = ", \"mark\":" + (Json.toJson mark |> utf8)
-                                    jsonResponse badQuestions test.StartedTime.Value test.Duration (Some additionalJson)
-                                    >=> sessionWithTest None (* Remove the test from session since it's finished. *)
-                                | _ -> BAD_REQUEST ""
-                            )
+            loggedOn ?> POST >+=> fun sess ctx ->
+                        match sess.Test with
+                        | Some test ->
+                            let test, mark = finishTest test
+                            let badQuestions = getIncorrectAnsweredQuestions test
+                            let additionalJson = ", \"mark\":" + (Json.toJson mark |> utf8)
+                            jsonResponse badQuestions test.StartedTime.Value test.Duration (Some additionalJson)
+                            >=> sessionWithTest None sess ctx (* Remove the test from session since it's finished. *)
+                        | _ -> BAD_REQUEST ""
 
         let answerTest =
-            POST <| session (fun sess ->
-                                match sess.TestId with
-                                | Some testId ->
-                                    request (fun req ->
-                                                    match req.rawForm |> utf8 with
-                                                    | Sscanf "q:%d;a:%d;" (qid, aid) ->
-                                                        markAnswer testId qid (Some aid)
-                                                        OK ""
-                                                    | _ -> BAD_REQUEST "Malformed request"
-                                            ) 
-                                | _ -> BAD_REQUEST ""
-                            )
+            loggedOn ?> POST >+=> fun sess ctx ->
+                        match sess.TestId with
+                        | Some testId ->
+                            request (fun req ->
+                                            match req.rawForm |> utf8 with
+                                            | Sscanf "q:%d;a:%d;" (qid, aid) ->
+                                                markAnswer testId qid (Some aid)
+                                                OK ""
+                                            | _ -> BAD_REQUEST "Malformed request"
+                                    ) 
+                        | _ -> BAD_REQUEST ""
 
     module TestPage =
-        open Views
         let page (testType:QuestionType) (testSummary:string) =
-            session (fun sess ->
-                match sess.User with
-                | Some usr ->
-                    let usrData = getUserData usr
-                    let testValue = testType.ToString().ToLower()
-                    let link = 
-                        match usrData.CanTakeTest testType with
-                        | Choice1Of2 true ->
-                            "<form action='/test' method='POST'><input type='submit' value='Przejdź do testu'>" + (makeCSRFinput sess.Csrf) + "<input type='hidden' name=\"test\" value=\"" + testValue + "\"></form>"
-                        | Choice1Of2 false ->
-                            "<p>Ten test został przez ciebie już zaliczony.</p>"
-                        | Choice2Of2 None -> "<p>Nie spełniasz wszystkich wymagań, aby być dopuszczonym do tego testu</p>"
-                        | Choice2Of2 (Some date) ->
-                            "<p>Wygląda na to, że nie możesz pisać tego testu do <strong>" + date.ToString("dd-MM-yyyy H:mm") + "</strong></p>"
-                    Views.testPage ("Test " + testType.ToString()) testSummary link
-                | None -> Views.BadRequest sess.Authenticated
-            )
+            loggedOn ?> 
+            fun (sess:Session) ctx ->
+                (
+                    match sess.User with
+                    | Some usr ->
+                        let usrData = getUserData usr
+                        let testValue = testType.ToString().ToLower()
+                        let link = 
+                            match usrData.CanTakeTest testType with
+                            | Choice1Of2 true ->
+                                "<form action='/test' method='POST'><input type='submit' value='Przejdź do testu'>" + (makeCSRFinput sess.Csrf) + "<input type='hidden' name=\"test\" value=\"" + testValue + "\"></form>"
+                            | Choice1Of2 false ->
+                                "<p>Ten test został przez ciebie już zaliczony.</p>"
+                            | Choice2Of2 None -> "<p>Nie spełniasz wszystkich wymagań, aby być dopuszczonym do tego testu</p>"
+                            | Choice2Of2 (Some date) ->
+                                "<p>Wygląda na to, że nie możesz pisać tego testu do <strong>" + date.ToString("dd-MM-yyyy H:mm") + "</strong></p>"
+                        Views.testPage ("Test " + testType.ToString()) testSummary link
+                    | None -> Views.BadRequest
+                ) sess ctx
     module AR =
         let page = TestPage.page AR "<p>Test na sędziego pomocniczego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
         <ul>
