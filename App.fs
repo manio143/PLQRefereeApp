@@ -9,6 +9,7 @@ open Suave.Logging
 
 open Authentication
 open Controllers
+open Helpers
 
 let app =
     choose [
@@ -38,14 +39,28 @@ let app =
         (Session.session (fun sess -> Views.NotFound sess.Authenticated))
     ]
 
+let appWithTrace app =
+    context (fun ctx -> 
+                withInfoLog (sprintf "Requested %s" ctx.request.path)
+            )
+    >=> app
+
+let errorHandler (exc:System.Exception) reason ctx =
+    OK "<html><head><meta http-equiv=\"refresh\" content=\"5;url=/\"></head><body><h1>500 Internal Server Error</h1><a href=\"/\">Redirecting...</a></body></html>"
+    >=> withErrorLog (sprintf "%s - %s\n%s" reason  exc.Message exc.StackTrace)
+    <| ctx
+
+let fullApp = app |> appWithTrace
+
 let serverConfig = 
     let envport = System.Environment.GetEnvironmentVariable "port"
     let port = (if not (isNull envport) then envport else "8000") |> int
     { defaultConfig 
         with
-            bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ]
-            logger = Targets.create Debug [| "Suave" |]
+            bindings = [ HttpBinding.createSimple HTTP "0.0.0.0" port ]
+            logger = Targets.create Debug [| "Suave"; "Suave.Tcp" |]
             homeFolder = Some (System.IO.Directory.GetCurrentDirectory())
+            errorHandler = errorHandler
     }
 
-startWebServer serverConfig app
+startWebServer serverConfig fullApp

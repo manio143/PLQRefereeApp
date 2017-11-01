@@ -23,6 +23,7 @@ CREATE TABLE Test (
     userId INTEGER NOT NULL,
     started DATETIME,
     finished DATETIME,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     type VARCHAR(2) NOT NULL,
     FOREIGN KEY (userId) REFERENCES Users(id)
 );

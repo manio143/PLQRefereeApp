@@ -28,22 +28,24 @@ module Logging =
     let logMessage level message ctx =
         ctx.runtime.logger.log level (fun _ -> Message.event level message) |> Async.RunSynchronously
 
-    let verboseLog message = logMessage Verbose message
-    let debugLog message = logMessage Debug message
-    let withVerboseLog (message:string) =
+    let verboseLog = logMessage Verbose
+    let debugLog = logMessage Debug
+
+    let infoLog = logMessage Info
+
+    let errorLog = logMessage Error
+
+    let withLog f (message:string) =
         context (function ctx ->
                                 fun ctx2 -> async {
-                                    do verboseLog message ctx
+                                    do f message ctx
                                     return Some ctx2
                                 }
                 )
-    let withDebugLog (message:string) =
-        context (function ctx ->
-                                fun ctx2 -> async {
-                                    do debugLog message ctx
-                                    return Some ctx2
-                                }
-                )
+    let withVerboseLog = withLog verboseLog
+    let withDebugLog = withLog debugLog
+    let withInfoLog = withLog infoLog
+    let withErrorLog = withLog errorLog
 
 let makeCSRFinput csrftoken =
     sprintf "<input type=\"hidden\" name=\"csrftoken\" value=\"%s\">" csrftoken

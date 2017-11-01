@@ -37,14 +37,6 @@ function send(method, uri, content, onSuccess, onError, setUp) {
     return req;
 }
 
-function parseform(form) {
-    var formData = new FormData(form);
-    var obj = {};
-    for (var pair of formData.entries())
-        obj[pair[0]] = pair[1];
-    return JSON.stringify(obj);
-}
-
 function required() {
     let valid = true;
     for (chk of document.getElementsByTagName("input")) {
@@ -103,8 +95,6 @@ function initializeClock(time) {
         //console.log(percent + '%');
 
         if (t.total <= 0) {
-            disableClock();
-            disableAnswering();
             let submit = document.getElementById("submit-btn");
             submit.setAttribute("disabled", "disabled");
             if(submit.mDone == undefined) {
@@ -120,8 +110,10 @@ function initializeClock(time) {
 
 function disableClock() {
     clearInterval(window.timeinterval);
-    document.getElementById("clock-label").remove();
-    document.getElementById("clock-bar").remove();
+    let cl = document.getElementById("clock-label");
+    if(cl != null) cl.remove();
+    let cb = document.getElementById("clock-bar");
+    if(cb != null) cb.remove();
 }
 
 let genericErrorHandler = (status, request) => { alert("ERROR " + status + "\n" + request); }

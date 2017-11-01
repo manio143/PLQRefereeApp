@@ -93,6 +93,7 @@ type Test =
         Answers : Answer option array
         StartedTime : System.DateTime option
         FinishedTime : System.DateTime option
+        Created : System.DateTime
         Type : QuestionType
         User : User
     }

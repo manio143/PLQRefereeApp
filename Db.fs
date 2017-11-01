@@ -18,7 +18,10 @@ type SqlProvider = SqlDataProvider<
                     CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL,
                     UseOptionTypes = true>
 
-let db = SqlProvider.GetDataContext()
+let db = 
+    let dbhost = System.Environment.GetEnvironmentVariable "dbhost"
+    if isNull dbhost then SqlProvider.GetDataContext()
+    else SqlProvider.GetDataContext(sprintf "Host=%s;Database=Main;Username=root;Password=root" dbhost)
 
 let getUser id =
     query {
@@ -178,7 +181,7 @@ let getTest id =
     let test = dbTest |> Option.map (fun (t:SqlProvider.dataContext.``Main.TestEntity``) ->
         let questions, answers = getQuestionsForTest t.Id |> Seq.unzip
         let user = getUser (t.UserId)
-        {Id = t.Id; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = t.Started; FinishedTime = t.Finished; Type = questionType t.Type; User = user.Value})
+        {Id = t.Id; Questions = Array.ofSeq questions; Answers = Array.ofSeq answers; StartedTime = t.Started; FinishedTime = t.Finished; Created = t.Created; Type = questionType t.Type; User = user.Value})
     //printfn "GET TEST: %A" test
     test
 
@@ -191,7 +194,10 @@ type Session with
 let cleanUnusedTests () =
     query {
          for test in db.Main.Test do
-             where(test.Finished.IsNone && System.DateTime.Now > test.Started.Value.AddDays(1.0))
+             where(
+                 test.Finished.IsNone &&
+                 test.Created < System.DateTime.Now.AddDays(-1.0)
+             )
              select test
     } |> Seq.iter (fun x -> x.Delete())
     db.SubmitUpdates()
