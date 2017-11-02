@@ -10,7 +10,7 @@ type User =
         Reset : string option
     }
     with
-        member this.IsAdmin () = this.Administrator
+        member this.IsAdmin = this.Administrator
 
 type QuestionType = AR | SR | HR
 let questionType (s:string) =

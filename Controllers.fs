@@ -65,7 +65,7 @@ module Register =
         ]
 
 module Directory =
-    let page = Views.directoryPage (getAllUserData())
+    let page session ctx = Views.directoryPage (getAllUserData()) session ctx
 
 module Profile =
     let page id =
