@@ -122,6 +122,13 @@ let verifyUser email password =
         | _ -> None
     | _, _ -> None
 
+let cleanUser user =
+    let dbUser = getDbUser user.Email
+    if dbUser.ArCooldown.IsSome && dbUser.ArCooldown < System.DateTime.Now then dbUser.ArCooldown <- None
+    if dbUser.SrCooldown.IsSome && dbUser.SrCooldown < System.DateTime.Now then dbUser.SrCooldown <- None
+    if dbUser.HrCooldown.IsSome && dbUser.HrCooldown < System.DateTime.Now then dbUser.HrCooldown <- None
+    db.SubmitUpdates()
+
 let getDbAnswer id = 
     query { 
         for answ in db.Main.Answer do

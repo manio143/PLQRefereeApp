@@ -31,7 +31,9 @@ module Login =
                         let email = postData httpReq "email"
                         let password = postData httpReq "password"
                         match Db.verifyUser email password with
-                        | Some user -> authenticateUser user session ctx
+                        | Some user -> 
+                                    cleanUser user
+                                    authenticateUser user session ctx
                         | None ->
                             Views.loginPage (Some "Invalid login credentials") session.Csrf session ctx
                             >=> withDebugLog "Invalid login credentials"
