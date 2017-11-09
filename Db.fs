@@ -7,7 +7,7 @@ open Domain
 open Helpers
 
 [<Literal>]
-let connectionString = "Host=docker;Database=Main;Username=root;Password=root"
+let connectionString = "Host=docker;Database=Main;Username=root;Password=plqroot1029"
 [<Literal>]
 let resolutionPath = @"packages/MySql.Data/lib/net452" //SET
 
@@ -21,7 +21,7 @@ type SqlProvider = SqlDataProvider<
 let db = 
     let dbhost = System.Environment.GetEnvironmentVariable "dbhost"
     if isNull dbhost then SqlProvider.GetDataContext()
-    else SqlProvider.GetDataContext(sprintf "Host=%s;Database=Main;Username=root;Password=root" dbhost)
+    else SqlProvider.GetDataContext(sprintf "Host=%s;Database=Main;Username=root;Password=plqroot1029" dbhost)
 
 let getUser id =
     query {
@@ -123,10 +123,10 @@ let verifyUser email password =
     | _, _ -> None
 
 let cleanUser user =
-    let dbUser = getDbUser user.Email
-    if dbUser.ArCooldown.IsSome && dbUser.ArCooldown < System.DateTime.Now then dbUser.ArCooldown <- None
-    if dbUser.SrCooldown.IsSome && dbUser.SrCooldown < System.DateTime.Now then dbUser.SrCooldown <- None
-    if dbUser.HrCooldown.IsSome && dbUser.HrCooldown < System.DateTime.Now then dbUser.HrCooldown <- None
+    let dbUser = getDbUserData user |> Option.get
+    if dbUser.Arcooldown.IsSome && dbUser.Arcooldown.Value < System.DateTime.Now then dbUser.Arcooldown <- None
+    if dbUser.Srcooldown.IsSome && dbUser.Srcooldown.Value < System.DateTime.Now then dbUser.Srcooldown <- None
+    if dbUser.Hrcooldown.IsSome && dbUser.Hrcooldown.Value < System.DateTime.Now then dbUser.Hrcooldown <- None
     db.SubmitUpdates()
 
 let getDbAnswer id = 
