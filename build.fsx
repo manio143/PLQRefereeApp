@@ -8,7 +8,7 @@ let buildDir  = "./build/"
 let deployDir = "./deploy/"
 
 let MSBuildDebug outputPath targets projects =
-    MSBuild outputPath targets [ ("Configuration", "Debug"); ("DefineConstants", "DEBUG") ] projects
+    MSBuild outputPath targets [ ("Configuration", "Release") ] projects
 
 // Filesets
 let appReferences  =
