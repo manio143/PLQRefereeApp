@@ -11,6 +11,8 @@ open Session
 open Action
 open Controllers
 open Helpers
+open Suave.Redirection
+open System.Diagnostics.Eventing.EventProvider
 
 let processAction action =
     session action
@@ -54,7 +56,23 @@ let errorHandler (exc:System.Exception) reason ctx =
     >=> withErrorLog (sprintf "%s - %s\n%s" reason  exc.Message exc.StackTrace)
     <| ctx
 
-let fullApp = app |> appWithTrace
+let appSecurity app =
+    let assertHTTPS settings app =
+        context (fun ctx ->
+                    let url = ctx.request.url.AbsoluteUri
+                    let decoded = System.Net.WebUtility.UrlDecode url
+                    if decoded.StartsWith("http:") then redirect ("https" + decoded.Substring(4))
+                    else settings >=> app
+                )
+    let addHSTS = Writers.addHeader "Strict-Transport-Security" "max-age=31536000; includeSubDomains"
+    let addCSP = Writers.addHeader "Content-Security-Policy" "default-src 'self'"
+    let addXFrame = Writers.addHeader "X-Frame-Options" "SAMEORIGIN"
+    let addXSSP = Writers.addHeader "X-XSS-Protection" "1; mode=block"
+    let addCTO = Writers.addHeader "X-Content-Type-Options" "nosniff"
+    let addRP = Writers.addHeader "Referrer-Policy" "origin-when-cross-origin"
+    assertHTTPS (addHSTS >=> addCSP >=> addXFrame >=> addXSSP >=> addCTO >=> addRP) app
+
+let fullApp = app |> appWithTrace |> appSecurity
 
 let serverConfig = 
     let envport = System.Environment.GetEnvironmentVariable "port"
