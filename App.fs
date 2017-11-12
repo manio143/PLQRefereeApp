@@ -12,7 +12,6 @@ open Action
 open Controllers
 open Helpers
 open Suave.Redirection
-open System.Diagnostics.Eventing.EventProvider
 
 let processAction action =
     session action
