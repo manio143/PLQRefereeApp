@@ -56,20 +56,13 @@ let errorHandler (exc:System.Exception) reason ctx =
     <| ctx
 
 let appSecurity app =
-    let assertHTTPS settings app =
-        context (fun ctx ->
-                    let url = ctx.request.url.AbsoluteUri
-                    let decoded = System.Net.WebUtility.UrlDecode url
-                    if decoded.StartsWith("http:") then redirect ("https://" + ctx.request.clientHostTrustProxy + ctx.request.path)
-                    else settings >=> app
-                )
     let addHSTS = Writers.addHeader "Strict-Transport-Security" "max-age=31536000; includeSubDomains"
     let addCSP = Writers.addHeader "Content-Security-Policy" "default-src 'self'"
     let addXFrame = Writers.addHeader "X-Frame-Options" "SAMEORIGIN"
     let addXSSP = Writers.addHeader "X-XSS-Protection" "1; mode=block"
     let addCTO = Writers.addHeader "X-Content-Type-Options" "nosniff"
     let addRP = Writers.addHeader "Referrer-Policy" "origin-when-cross-origin"
-    assertHTTPS (addHSTS >=> addCSP >=> addXFrame >=> addXSSP >=> addCTO >=> addRP) app
+    addHSTS >=> addCSP >=> addXFrame >=> addXSSP >=> addCTO >=> addRP >=> app
 
 let fullApp = app |> appWithTrace |> appSecurity
 
