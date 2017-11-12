@@ -57,7 +57,7 @@ let errorHandler (exc:System.Exception) reason ctx =
 
 let appSecurity app =
     let addHSTS = Writers.addHeader "Strict-Transport-Security" "max-age=31536000; includeSubDomains"
-    let addCSP = Writers.addHeader "Content-Security-Policy" "default-src 'self'"
+    let addCSP = Writers.addHeader "Content-Security-Policy" "default-src https: 'self' 'unsafe-inline'"
     let addXFrame = Writers.addHeader "X-Frame-Options" "SAMEORIGIN"
     let addXSSP = Writers.addHeader "X-XSS-Protection" "1; mode=block"
     let addCTO = Writers.addHeader "X-Content-Type-Options" "nosniff"
