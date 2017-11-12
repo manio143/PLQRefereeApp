@@ -114,3 +114,4 @@ DotLiquid.Template.RegisterSafeType(typeof<DirectoryPageViewModel>, [|"Title"; "
 DotLiquid.Template.RegisterSafeType(typeof<TestEnvironmentViewModel>, [|"Title"; "IsAuthenticated"; "TestTitle"; "TestTime"; "QuestionCount"|])
 DotLiquid.Template.RegisterSafeType(typeof<ProfileViewModel>, [|"Title"; "IsAuthenticated"; "User"|])
 DotLiquid.Impl.tryRegisterTypeTree (typeof<UserData>)
+DotLiquid.Impl.tryRegisterTypeTree (typeof<string option>)

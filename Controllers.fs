@@ -35,7 +35,7 @@ module Login =
                                     cleanUser user
                                     authenticateUser user session ctx
                         | None ->
-                            Views.loginPage (Some "Invalid login credentials") session.Csrf session ctx
+                            Views.loginPage (Some "Niepoprawny email lub hasło.") session.Csrf session ctx
                             >=> withDebugLog "Invalid login credentials"
                        )
                 ) session ctx
