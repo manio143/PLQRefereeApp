@@ -76,9 +76,10 @@ CREATE TABLE TestQuestion (
     questionId INTEGER NOT NULL,
     answerId INTEGER,
     PRIMARY KEY (testId, questionId),
-    FOREIGN KEY (testId) REFERENCES Test(id),
+    FOREIGN KEY (testId) REFERENCES Test(id)
+        ON DELETE CASCADE,
     FOREIGN KEY (questionId) REFERENCES Question(id),
-    FOREIGN KEY (answerId) REFERENCES Answer(id)    
+    FOREIGN KEY (answerId) REFERENCES Answer(id)
 );
 
 CREATE TABLE Sessions (
