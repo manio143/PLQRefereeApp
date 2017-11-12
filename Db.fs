@@ -72,6 +72,7 @@ let getUserData (usr:User) =
 let getAllUserData() =
     query {
         for userData in db.Main.UserData do
+        sortBy userData.Surname
         sortBy userData.Team
         select userData
     } |> Seq.map mapUserData |> Seq.cache
