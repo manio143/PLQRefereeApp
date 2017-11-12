@@ -60,7 +60,7 @@ let appSecurity app =
         context (fun ctx ->
                     let url = ctx.request.url.AbsoluteUri
                     let decoded = System.Net.WebUtility.UrlDecode url
-                    if decoded.StartsWith("http:") then redirect ("https" + decoded.Substring(4))
+                    if decoded.StartsWith("http:") then redirect ("https://" + ctx.request.clientHostTrustProxy + ctx.request.path)
                     else settings >=> app
                 )
     let addHSTS = Writers.addHeader "Strict-Transport-Security" "max-age=31536000; includeSubDomains"
