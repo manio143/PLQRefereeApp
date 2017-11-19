@@ -1,9 +1,0 @@
-framework: net462
-source https://www.nuget.org/api/v2
-nuget FAKE
-nuget FSharp.Core 4.0.0.1 redirects: force
-nuget SQLProvider 1.1.10
-nuget Suave 2.1.1
-nuget DotLiquid
-nuget BCrypt-Official
-nuget MySql.Data 6.8.8
