@@ -13,5 +13,10 @@ namespace PLQRefereeApp
         public IActionResult Index() {
             return View();
         }
+
+        [Route("/materials")]
+        public IActionResult Materials() {
+            return View();
+        }
     }
 }
