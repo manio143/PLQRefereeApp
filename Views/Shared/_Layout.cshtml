@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/materials">Materiały</a>
+            <a href="/directory">Lista sędziów</a>
+            <a href="/test/AR">Test-AR</a>
+            <a href="/test/SR">Test-SR</a>
+            <a href="/test/HR">Test-HR</a>
+        </nav>
+        <nav>
+            @if (User.Identity.IsAuthenticated) {
+            <a href="/account/details">Profil</a>
+            <a href="/logout">Wyloguj</a>
+            } else {
+            <a href="/login">Zaloguj</a>
+            <a href="/register">Rejestracja</a>
+            }
+        </nav>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+        <footer>
+        <p>Strona została przygotowana przez <a href="https://www.twitter.com/MDziubiak/">Mariana Dziubiaka</a> dla <a href="https://polskaligaquidditcha.pl">Polskiej Ligi Quidditcha</a>.</p>
+        <p>Jej źródła są dostępne pod adresem <a href="https://github.com/manio143/PLQRefereeApp/">https://github.com/manio143/PLQRefereeApp/</a></p>
+    </footer>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
