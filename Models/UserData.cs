@@ -23,5 +23,10 @@ namespace PLQRefereeApp
         public bool? HrPayment { get; set; }
 
         public User User { get; set; }
+
+        public bool IsArCertified => Ar != null || ArIrdp == true;
+        public bool IsSrCertified => Sr != null || SrIrdp == true;
+        public bool IsHrCertified => Hr != null || HrIrdp == true;
+        public bool IsCertified => IsArCertified || IsSrCertified || IsHrCertified;
     }
 }
