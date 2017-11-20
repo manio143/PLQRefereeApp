@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PLQRefereeApp
 {
@@ -15,14 +17,11 @@ namespace PLQRefereeApp
         public DateTime? Arcooldown { get; set; }
         public DateTime? Srcooldown { get; set; }
         public DateTime? Hrcooldown { get; set; }
-        public bool ArIrdp { get; set; }
-        public bool SrIrdp { get; set; }
-        public bool HrIrdp { get; set; }
-        public bool HrPayment { get; set; }
+        public bool? ArIrdp { get; set; }
+        public bool? SrIrdp { get; set; }
+        public bool? HrIrdp { get; set; }
+        public bool? HrPayment { get; set; }
 
-        public Test ArTest { get; set; }
-        public Test HrTest { get; set; }
         public User User { get; set; }
-        public Test SrTest { get; set; }
     }
 }

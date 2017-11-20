@@ -28,9 +28,12 @@ namespace PLQRefereeApp
 
         public void AddUser(User user, UserData data)
         {
-            if (Context.Users.Contains(user))
+            if (Context.Users.Any(u => u.Id == user.Id))
                 throw new ArgumentException("Cannot add an object for the seconds time.");
             Context.Users.Add(user);
+            Context.SaveChanges();
+            user = GetUser(user.Email); //get the updated Id
+            data.Id = user.Id;
             Context.UserData.Add(data);
             Context.SaveChanges();
         }

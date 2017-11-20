@@ -17,7 +17,7 @@ namespace PLQRefereeApp
 
         public void AddTest(Test test)
         {
-            if (Context.Tests.Contains(test))
+            if (Context.Tests.Any(t => t.Id == test.Id))
                 throw new ArgumentException("Cannot add an object for the seconds time.");
             Context.Tests.Add(test);
             var testQuestions = test.TestQuestion;
