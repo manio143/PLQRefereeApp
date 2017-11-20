@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Login";
+    bool error = (bool?)ViewData["Error"] ?? false;
+}
+
+<h1>Zaloguj</h1>
+@if (error) {
+<p class="red">Nieprawidłowy email lub hasło.</p>
+}
+
+<form method="POST">
+    <div>
+        <label for="email">Email</label>
+        <input type="text" name="email">
+    </div>
+    <div>
+        <label for="password">Hasło</label>
+        <input type="password" name="password">
+    </div>
+    <div>
+        @Html.AntiForgeryToken()
+        <button type="submit">Zaloguj</button>
+    </div>
+</form>
