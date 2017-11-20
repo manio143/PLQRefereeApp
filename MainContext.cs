@@ -6,6 +6,8 @@ namespace PLQRefereeApp
 {
     public partial class MainContext : DbContext
     {
+        public MainContext(DbContextOptions<MainContext> options) : base(options) { }
+
         public virtual DbSet<Answer> Answers { get; set; }
         public virtual DbSet<Question> Questions { get; set; }
         public virtual DbSet<QuestionsAnswer> QuestionsAnswers { get; set; }
@@ -242,26 +244,11 @@ namespace PLQRefereeApp
                     .HasColumnName("team")
                     .HasMaxLength(128);
 
-                entity.HasOne(d => d.ArTest)
-                    .WithMany(p => p.UserDataArNavigation)
-                    .HasForeignKey(d => d.Ar)
-                    .HasConstraintName("UserData_ibfk_2");
-
-                entity.HasOne(d => d.HrTest)
-                    .WithMany(p => p.UserDataHrNavigation)
-                    .HasForeignKey(d => d.Hr)
-                    .HasConstraintName("UserData_ibfk_4");
-
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.UserData)
                     .HasForeignKey<UserData>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("UserData_ibfk_1");
-
-                entity.HasOne(d => d.SrTest)
-                    .WithMany(p => p.UserDataSrNavigation)
-                    .HasForeignKey(d => d.Sr)
-                    .HasConstraintName("UserData_ibfk_3");
             });
 
             modelBuilder.Entity<User>(entity =>

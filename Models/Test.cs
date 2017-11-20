@@ -9,9 +9,6 @@ namespace PLQRefereeApp
         public Test()
         {
             TestQuestion = new HashSet<TestQuestion>();
-            UserDataArNavigation = new HashSet<UserData>();
-            UserDataHrNavigation = new HashSet<UserData>();
-            UserDataSrNavigation = new HashSet<UserData>();
         }
 
         public int Id { get; set; }
