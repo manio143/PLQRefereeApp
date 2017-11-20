@@ -6,13 +6,13 @@ namespace PLQRefereeApp
 {
     public partial class MainContext : DbContext
     {
-        public virtual DbSet<Answer> Answer { get; set; }
-        public virtual DbSet<Question> Question { get; set; }
-        public virtual DbSet<QuestionsAnswer> QuestionsAnswer { get; set; }
-        public virtual DbSet<Test> Test { get; set; }
-        public virtual DbSet<TestQuestion> TestQuestion { get; set; }
+        public virtual DbSet<Answer> Answers { get; set; }
+        public virtual DbSet<Question> Questions { get; set; }
+        public virtual DbSet<QuestionsAnswer> QuestionsAnswers { get; set; }
+        public virtual DbSet<Test> Tests { get; set; }
+        public virtual DbSet<TestQuestion> TestQuestions { get; set; }
         public virtual DbSet<UserData> UserData { get; set; }
-        public virtual DbSet<Users> Users { get; set; }
+        public virtual DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -27,7 +27,7 @@ namespace PLQRefereeApp
                     .HasColumnType("int(11)")
                     .ValueGeneratedNever();
 
-                entity.Property(e => e.Answer1)
+                entity.Property(e => e.Value)
                     .IsRequired()
                     .HasColumnName("answer")
                     .HasMaxLength(1000);
@@ -50,12 +50,12 @@ namespace PLQRefereeApp
                     .HasMaxLength(120)
                     .HasDefaultValueSql("''");
 
-                entity.Property(e => e.Question1)
+                entity.Property(e => e.Value)
                     .IsRequired()
                     .HasColumnName("question")
                     .HasMaxLength(1000);
 
-                entity.Property(e => e.Type)
+                entity.Property(e => e.TypeData)
                     .IsRequired()
                     .HasColumnName("type")
                     .HasMaxLength(2);
@@ -242,29 +242,29 @@ namespace PLQRefereeApp
                     .HasColumnName("team")
                     .HasMaxLength(128);
 
-                entity.HasOne(d => d.ArNavigation)
+                entity.HasOne(d => d.ArTest)
                     .WithMany(p => p.UserDataArNavigation)
                     .HasForeignKey(d => d.Ar)
                     .HasConstraintName("UserData_ibfk_2");
 
-                entity.HasOne(d => d.HrNavigation)
+                entity.HasOne(d => d.HrTest)
                     .WithMany(p => p.UserDataHrNavigation)
                     .HasForeignKey(d => d.Hr)
                     .HasConstraintName("UserData_ibfk_4");
 
-                entity.HasOne(d => d.IdNavigation)
+                entity.HasOne(d => d.User)
                     .WithOne(p => p.UserData)
                     .HasForeignKey<UserData>(d => d.Id)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("UserData_ibfk_1");
 
-                entity.HasOne(d => d.SrNavigation)
+                entity.HasOne(d => d.SrTest)
                     .WithMany(p => p.UserDataSrNavigation)
                     .HasForeignKey(d => d.Sr)
                     .HasConstraintName("UserData_ibfk_3");
             });
 
-            modelBuilder.Entity<Users>(entity =>
+            modelBuilder.Entity<User>(entity =>
             {
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

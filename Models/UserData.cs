@@ -15,14 +15,14 @@ namespace PLQRefereeApp
         public DateTime? Arcooldown { get; set; }
         public DateTime? Srcooldown { get; set; }
         public DateTime? Hrcooldown { get; set; }
-        public sbyte ArIrdp { get; set; }
-        public sbyte SrIrdp { get; set; }
-        public sbyte HrIrdp { get; set; }
-        public sbyte HrPayment { get; set; }
+        public bool ArIrdp { get; set; }
+        public bool SrIrdp { get; set; }
+        public bool HrIrdp { get; set; }
+        public bool HrPayment { get; set; }
 
-        public Test ArNavigation { get; set; }
-        public Test HrNavigation { get; set; }
-        public Users IdNavigation { get; set; }
-        public Test SrNavigation { get; set; }
+        public Test ArTest { get; set; }
+        public Test HrTest { get; set; }
+        public User User { get; set; }
+        public Test SrTest { get; set; }
     }
 }

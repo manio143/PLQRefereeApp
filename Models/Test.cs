@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PLQRefereeApp
 {
@@ -20,10 +21,22 @@ namespace PLQRefereeApp
         public DateTime Created { get; set; }
         public string Type { get; set; }
 
-        public Users User { get; set; }
+        public User User { get; set; }
+
+        private IEnumerable<Question> _questions = null;
+        public IEnumerable<Question> Questions {
+            get
+            {
+                if (_questions == null)
+                    _questions = TestQuestion.Where(tq => tq.TestId == Id).Select(tq => tq.Question).ToList();
+                return _questions;
+            }
+            set
+            {
+                _questions = value;
+            }
+        }
+
         public ICollection<TestQuestion> TestQuestion { get; set; }
-        public ICollection<UserData> UserDataArNavigation { get; set; }
-        public ICollection<UserData> UserDataHrNavigation { get; set; }
-        public ICollection<UserData> UserDataSrNavigation { get; set; }
     }
 }
