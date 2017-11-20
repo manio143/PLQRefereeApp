@@ -44,7 +44,6 @@ namespace PLQRefereeApp
 
         [Route("/login")]
         [HttpGet]
-        [AllowAnonymous]
         public IActionResult LoginView(string returnUrl = null)
         {
             if(HttpContext.User.Identity.IsAuthenticated)
@@ -54,7 +53,6 @@ namespace PLQRefereeApp
 
         [Route("/login")]
         [HttpPost]
-        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LoginPost(LoginPostData loginData, string returnUrl = null)
         {
@@ -72,7 +70,6 @@ namespace PLQRefereeApp
 
         [Route("/logout")]
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(Authentication.Scheme);
@@ -96,7 +93,6 @@ namespace PLQRefereeApp
 
         [Route("/register")]
         [HttpGet]
-        [AllowAnonymous]
         public IActionResult Register()
         {
             if(HttpContext.User.Identity.IsAuthenticated)
@@ -106,7 +102,6 @@ namespace PLQRefereeApp
 
         [Route("/register")]
         [HttpPost]
-        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterPost(RegisterPostData registerData)
         {
