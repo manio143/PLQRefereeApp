@@ -27,6 +27,8 @@ namespace PLQRefereeApp
                 refs = refs.Where(ud => ud.IsArCertified);
             else if (filter.Equals("SR", StringComparison.InvariantCultureIgnoreCase))
                 refs = refs.Where(ud => ud.IsSrCertified);
+            else if (filter.Equals("ASR", StringComparison.InvariantCultureIgnoreCase))
+                refs = refs.Where(ud => ud.IsArCertified && ud.IsSrCertified);
             else if (filter.Equals("HR", StringComparison.InvariantCultureIgnoreCase))
                 refs = refs.Where(ud => ud.IsHrCertified);
 

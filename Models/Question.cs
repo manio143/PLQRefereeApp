@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 namespace PLQRefereeApp
@@ -9,14 +10,9 @@ namespace PLQRefereeApp
         AR, SR, HR
     }
 
+    [Table("Question")]
     public partial class Question
     {
-        public Question()
-        {
-            QuestionsAnswer = new HashSet<QuestionsAnswer>();
-            TestQuestion = new HashSet<TestQuestion>();
-        }
-
         public int Id { get; set; }
         public string Value { get; set; }
         public string Information { get; set; }
@@ -35,10 +31,5 @@ namespace PLQRefereeApp
             }
         }
         public QuestionType Type { get; set; }
-
-        public IEnumerable<Answer> Answers => QuestionsAnswer.Where(qa => qa.QuestionId == Id).Select(qa => qa.Answer);
-
-        public ICollection<QuestionsAnswer> QuestionsAnswer { get; set; }
-        public ICollection<TestQuestion> TestQuestion { get; set; }
     }
 }

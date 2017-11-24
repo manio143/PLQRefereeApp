@@ -1,0 +1,72 @@
+@model QuestionType
+@{
+    ViewData["Title"] = "Test " + Model.ToString();
+    var userData = (UserData)ViewData["UserData"];
+}
+
+<h1>@ViewData["Title"]</h1>
+<h2>Opis testu</h2>
+@if (Model == QuestionType.AR) {
+    <p>Test na sędziego pomocniczego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
+        <ul>
+        <li>2. Wyposażenie i wymiary boiska</li>
+        <li>5. Zbicie</li>
+        <li>6. Zasady zachowania i interakcji</li>
+        <li>7. Zawodnicy</li>
+        <li>8.2.2. Sędziowie pomocniczy</li>
+        </ul>
+} else if (Model == QuestionType.SR) {
+    <p>Test na sędziego zniczowego ma za zadanie sprawdzić twoją wiedzę z zakresu zasad gry w Quidditcha obejmujących zadania sędziego zniczowego. Ponieważ obowiązki sędziego zniczowego częściowo pokrywają się z obowiązkami sędziego pomocniczego oraz często się zdarza, że sędzia zniczowy jest sędzią pomocniczym dopóki znicz nie wejdzie na boisko, to <u>ten test zawiera 5 pytań jakie znajdują się w testach na sędziego pomocnicznego</u>. Zalecamy, aby najpierw zdać test na sędziego pomocniczego. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z następujących rozdziałów:</p>
+        <ul>
+        <li>2. Wyposażenie i wymiary boiska</li>
+        <li>3.3. Zatrzymanie gry</li>
+        <li>4.5. Złapanie znicza</li>
+        <li>6. Zasady zachowania i interakcji</li>
+        <li>7.5. Zasady dotyczące szukających</li>
+        <li>8.2.3. Sędzia zniczowy</li>
+        <li>8.3. Ludzki znicz</li>
+        </ul>
+} else if (Model == QuestionType.HR) {
+    <p>Test na sędziego głównego ma za zadanie sprawdzić twoją wiedzę z całego zakresu zasad gry w Quidditcha. Obowiązki sędziego głównego są opisane w rozdziale 8.1. Sędzia główny. Zanim przystąpisz do tego testu koniecznie odśwież swoją wiedzę z całego Rulebooka!</p><p>Aby podejść do testu na sędziego głównego należy uiścić opłatę za test w wysokości 35zł. Szczegółowe informacje dotyczące płatności znajdziesz <strong><a href="/payment">tutaj</a></strong>.</p><p>Trzeba również mieć zaliczone testy na sędziego pomocniczego i zniczowego.</p>
+}
+
+<h3>Test</h3>
+@if (userData.IsCertifiedOf(Model)) {
+    <p>Ten test został przez ciebie już zaliczony.</p>
+} else if (ViewBag.AlreadyStarted) {
+    <p>Jesteś w trakcie rozwiązywania testu. Poczekaj aż skończysz tamten test, przed rozpoczęciem kolejnego.</p>
+} else if (Model == QuestionType.HR && !(userData.IsArCertified && userData.IsSrCertified && userData.HrPayment.Value)) {
+    <p>Nie spełniasz wszystkich wymagań, aby być dopuszczonym do tego testu</p>
+} else {
+    if (Model == QuestionType.AR) {
+        if (userData.Arcooldown != null) {
+            <p>Wygląda na to, że nie możesz pisać tego testu do <strong>@userData.Arcooldown.Value.ToString("dd-MM-yyyy H:mm")</strong></p>
+        } else {
+            <form action='/test' method='POST'>
+                <input type='submit' value='Przejdź do testu'>
+                @Html.AntiForgeryToken()
+                <input type='hidden' name="test" value="ar">
+            </form>
+        }
+    } else if (Model == QuestionType.SR) {
+        if (userData.Srcooldown != null) {
+            <p>Wygląda na to, że nie możesz pisać tego testu do <strong>@userData.Srcooldown.Value.ToString("dd-MM-yyyy H:mm")</strong></p>
+        } else {
+            <form action='/test' method='POST'>
+                <input type='submit' value='Przejdź do testu'>
+                @Html.AntiForgeryToken()
+                <input type='hidden' name="test" value="sr">
+            </form>
+        }
+    } else if (Model == QuestionType.HR) {
+        if (userData.Hrcooldown != null) {
+            <p>Wygląda na to, że nie możesz pisać tego testu do <strong>@userData.Hrcooldown.Value.ToString("dd-MM-yyyy H:mm")</strong></p>
+        } else {
+            <form action='/test' method='POST'>
+                <input type='submit' value='Przejdź do testu'>
+                @Html.AntiForgeryToken()
+                <input type='hidden' name="test" value="hr">
+            </form>
+        }
+    }
+}

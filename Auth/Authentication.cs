@@ -1,3 +1,9 @@
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+
 namespace PLQRefereeApp
 {
     public class Authentication
@@ -26,5 +32,14 @@ namespace PLQRefereeApp
             return true;
         }
 
+        public static async Task ValidatePrincipal(CookieValidatePrincipalContext arg)
+        {
+            var session = arg.HttpContext.Session;
+            if (session.GetInt32("UserId") == null)
+            {
+                arg.RejectPrincipal();
+                await arg.HttpContext.SignOutAsync(Scheme);
+            }
+        }
     }
 }

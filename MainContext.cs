@@ -62,6 +62,8 @@ namespace PLQRefereeApp
                     .IsRequired()
                     .HasColumnName("type")
                     .HasMaxLength(2);
+
+                entity.Ignore(e => e.Type);
             });
 
             modelBuilder.Entity<QuestionsAnswer>(entity =>
@@ -78,29 +80,19 @@ namespace PLQRefereeApp
                 entity.Property(e => e.AnswerId)
                     .HasColumnName("answerId")
                     .HasColumnType("int(11)");
-
-                entity.HasOne(d => d.Answer)
-                    .WithMany(p => p.QuestionsAnswer)
-                    .HasForeignKey(d => d.AnswerId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("QuestionsAnswer_ibfk_2");
-
-                entity.HasOne(d => d.Question)
-                    .WithMany(p => p.QuestionsAnswer)
-                    .HasForeignKey(d => d.QuestionId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("QuestionsAnswer_ibfk_1");
             });
 
             modelBuilder.Entity<Test>(entity =>
             {
+                entity.HasKey(e => e.Id);
+
                 entity.HasIndex(e => e.UserId)
                     .HasName("userId");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasColumnType("int(11)")
-                    .ValueGeneratedNever();
+                    .ValueGeneratedOnAdd();
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -120,15 +112,14 @@ namespace PLQRefereeApp
                     .HasColumnName("type")
                     .HasMaxLength(2);
 
+                entity.Property(e => e.Mark)
+                    .HasColumnName("mark");
+
                 entity.Property(e => e.UserId)
                     .HasColumnName("userId")
                     .HasColumnType("int(11)");
 
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Test)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("Test_ibfk_1");
+                entity.Ignore(e => e.Questions);
             });
 
             modelBuilder.Entity<TestQuestion>(entity =>
@@ -153,21 +144,6 @@ namespace PLQRefereeApp
                     .HasColumnName("answerId")
                     .HasColumnType("int(11)");
 
-                entity.HasOne(d => d.Answer)
-                    .WithMany(p => p.TestQuestion)
-                    .HasForeignKey(d => d.AnswerId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("TestQuestion_ibfk_3");
-
-                entity.HasOne(d => d.Question)
-                    .WithMany(p => p.TestQuestion)
-                    .HasForeignKey(d => d.QuestionId)
-                    .HasConstraintName("TestQuestion_ibfk_2");
-
-                entity.HasOne(d => d.Test)
-                    .WithMany(p => p.TestQuestion)
-                    .HasForeignKey(d => d.TestId)
-                    .HasConstraintName("TestQuestion_ibfk_1");
             });
 
             modelBuilder.Entity<UserData>(entity =>
@@ -184,7 +160,7 @@ namespace PLQRefereeApp
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasColumnType("int(11)")
-                    .ValueGeneratedNever();
+                    .ValueGeneratedOnAdd();
 
                 entity.Property(e => e.Ar)
                     .HasColumnName("ar")
@@ -244,12 +220,6 @@ namespace PLQRefereeApp
                     .IsRequired()
                     .HasColumnName("team")
                     .HasMaxLength(128);
-
-                entity.HasOne(d => d.User)
-                    .WithOne(p => p.UserData)
-                    .HasForeignKey<UserData>(d => d.Id)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("UserData_ibfk_1");
             });
 
             modelBuilder.Entity<User>(entity =>
@@ -257,7 +227,7 @@ namespace PLQRefereeApp
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasColumnType("int(11)")
-                    .ValueGeneratedNever();
+                    .ValueGeneratedOnAdd();
 
                 entity.Property(e => e.Administrator)
                     .HasColumnName("administrator")

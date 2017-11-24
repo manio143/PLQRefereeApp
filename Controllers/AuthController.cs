@@ -46,7 +46,7 @@ namespace PLQRefereeApp
         [HttpGet]
         public IActionResult LoginView(string returnUrl = null)
         {
-            if(HttpContext.User.Identity.IsAuthenticated)
+            if (HttpContext.User.Identity.IsAuthenticated)
                 return LocalRedirect(returnUrl ?? "/");
             return View("Login");
         }
@@ -78,11 +78,16 @@ namespace PLQRefereeApp
 
         private ClaimsPrincipal ConstructClaimsPrincipal(User user)
         {
-            return new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            var identity = new ClaimsIdentity(new List<Claim>
             {
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Administrator ? "Admin" : "User")
-            }, Authentication.Scheme));
+            }, Authentication.Scheme)
+            {
+                Label = user.Email
+            };
+
+            return new ClaimsPrincipal(identity);
         }
 
         private async Task SetAuthSession(User user)
@@ -95,7 +100,7 @@ namespace PLQRefereeApp
         [HttpGet]
         public IActionResult Register()
         {
-            if(HttpContext.User.Identity.IsAuthenticated)
+            if (HttpContext.User.Identity.IsAuthenticated)
                 return LocalRedirect("/");
             return View("Register");
         }
@@ -111,10 +116,11 @@ namespace PLQRefereeApp
                 return View("Register");
             }
 
-            if(String.IsNullOrWhiteSpace(registerData.Name)
+            if (String.IsNullOrWhiteSpace(registerData.Name)
                 || String.IsNullOrWhiteSpace(registerData.Surname)
                 || String.IsNullOrWhiteSpace(registerData.Email)
-                || String.IsNullOrWhiteSpace(registerData.Password)) {
+                || String.IsNullOrWhiteSpace(registerData.Password))
+            {
                 ViewBag.Error = RegisterError.InvalidValue;
                 return View("Register");
             }

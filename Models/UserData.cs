@@ -22,11 +22,31 @@ namespace PLQRefereeApp
         public bool? HrIrdp { get; set; }
         public bool? HrPayment { get; set; }
 
-        public User User { get; set; }
-
         public bool IsArCertified => Ar != null || ArIrdp == true;
         public bool IsSrCertified => Sr != null || SrIrdp == true;
         public bool IsHrCertified => Hr != null || HrIrdp == true;
         public bool IsCertified => IsArCertified || IsSrCertified || IsHrCertified;
+        public bool IsCertifiedOf(QuestionType type)
+        {
+            switch (type)
+            {
+                case QuestionType.AR: return IsArCertified;
+                case QuestionType.SR: return IsSrCertified;
+                case QuestionType.HR: return IsHrCertified;
+                default: return false;
+            }
+        }
+
+        internal bool CanTakeTestOf(QuestionType type)
+        {
+            if (IsCertifiedOf(type)) return false;
+            switch (type)
+            {
+                case QuestionType.AR: return Arcooldown == null;
+                case QuestionType.SR: return Srcooldown == null;
+                case QuestionType.HR: return Hrcooldown == null && HrPayment.Value;
+                default: return false;
+            }
+        }
     }
 }

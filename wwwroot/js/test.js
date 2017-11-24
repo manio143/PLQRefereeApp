@@ -117,7 +117,10 @@ function disableClock() {
 }
 
 let genericErrorHandler = (status, request) => { alert("ERROR " + status + "\n" + request); }
-let withCSRF = (request) => { request.setRequestHeader("X-CSRF-Token", parse_cookies().CSRFToken); }
+let withCSRF = (request) => {
+    request.setRequestHeader("X-CSRF-Token", parse_cookies().Token);
+    request.setRequestHeader("Content-Type", "application/json; charset=utf8");
+}
 
 let nextChar = (char) => {
     if(char == "A") return "B";
@@ -137,6 +140,7 @@ let createElement = (type, id, className) => {
 window.onload = function () {
     var startTestBtn = document.getElementById("start-test-btn");
     startTestBtn.onclick = () => {
+        startTestBtn.disabled = "disabled";
         send("POST", "/test-start", "", (_, response) => {
             let testData = JSON.parse(response);
             let intro = document.getElementById("intro");
@@ -144,7 +148,7 @@ window.onload = function () {
             root.removeChild(intro);
             generateView(testData, root, true);
             required();
-            initializeClock(testData.time.minutes);
+            initializeClock(testData.time);
         }, genericErrorHandler, withCSRF);
     };
 }
@@ -161,10 +165,7 @@ function generateView(testData, root, submitAndClock) {
         wrapper.appendChild(clockBarWrapper);
     } else {
         let finishLabel = createElement("p", "finish-label");
-        let numberOfQuestions = testData.mark["Count@"];
-        let numberOfCorrect = testData.mark["CorrectlyAnswered@"]
-        finishLabel.innerText = "Zakończyłeś test! Odpowiedziałeś poprawnie na " + numberOfCorrect + "/" + numberOfQuestions +
-                                " pytań. Jest to " + (numberOfCorrect/numberOfQuestions >= 0.8 ? "ponad 80%, czyli zaliczyłeś ten test. Gratulacje!" : "poniżej 80%, czyli nie udało ci się zaliczyć testu.");
+        finishLabel.innerText = "Zakończyłeś test! Odpowiedziałeś poprawnie na " + testData.mark + "% pytań. Jest to " + (testData.mark >= 80 ? "ponad 80%, czyli zaliczyłeś ten test. Gratulacje!" : "poniżej 80%, czyli nie udało ci się zaliczyć testu.");
         let anotherLabel = createElement("p");
         anotherLabel.innerText = "Poniżej znajdują się pytania, na które nie odpowiedziałeś poprawnie."
         let buttonFinish = createElement("button");
@@ -181,31 +182,31 @@ function generateView(testData, root, submitAndClock) {
         let header = createElement("h4");
         header.innerHTML = "Pytanie " + (counter++);
         let question = createElement("p", undefined, "question");
-        question.innerHTML = q["Question@"];
+        question.innerHTML = q.question;
         let awrapper = createElement("div", undefined, "answer-wrapper");
         let char = 'A';
         let isCorrected = false;
-        for (a of q["Answers@"]) {
+        for (a of q.answers) {
             let isolator = document.createElement("div");
-            let id = q["Id@"] + ":" + a["Id@"];
+            let id = q.id + ":" + a.id;
             if(submitAndClock) {
                 let radio = createElement("input", id);
                 radio.type = "radio";
-                radio.value = a["Id@"];
-                radio.name = q["Id@"];
+                radio.value = a.id;
+                radio.name = q.id;
                 radio.onchange = () => {
-                    send("POST", "/test-answer", "q:"+radio.name+";a:"+radio.value+";", () => { }, genericErrorHandler, withCSRF);
+                    send("POST", "/test-answer", JSON.stringify({q:radio.name,a:radio.value}), () => { }, genericErrorHandler, withCSRF);
                     required();
                 };
                 isolator.appendChild(radio);
             }
             let label = document.createElement("label");
             label.for = id;
-            label.innerHTML = (a["Correct@"] ? "<span class=\"red bold\">":"") + char + ". " +
-                            (a["Correct@"] ? "</span>":"") + a["Answer@"];
+            label.innerHTML = (a.correct ? "<span class=\"red bold\">":"") + char + ". " +
+                            (a.correct ? "</span>":"") + a.answer;
             if(submitAndClock) label.onclick = () => document.getElementById(id).click();
             char = nextChar(char);
-            if(a["Correct@"])
+            if(a.correct)
                 isCorrected = true;
             isolator.appendChild(label);
             awrapper.appendChild(isolator);
@@ -215,7 +216,7 @@ function generateView(testData, root, submitAndClock) {
         qwrapper.appendChild(awrapper);
         if(isCorrected) {
             let info = createElement("p", undefined, "question-info");
-            info.innerHTML = q["Information@"];
+            info.innerHTML = q.information;
             qwrapper.appendChild(info);
         }
         wrapper.appendChild(qwrapper);

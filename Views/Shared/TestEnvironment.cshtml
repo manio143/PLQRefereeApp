@@ -1,0 +1,21 @@
+@model QuestionType
+@{
+    ViewData["Title"] = "Test " + Model.ToString();
+}
+
+<div id="intro">
+    <h2>@ViewData["Title"]</h2>
+    <ul>
+        <li>Czas trwania: @Model.Duration().ToString("mm\\:ss")</li>
+        <li>Liczba pytań: @Model.QuestionCount()</li>
+        <li>Próg zaliczenia: 80%</li>
+        <li>Nie zamykaj tej strony, dopóki nie zakończysz testu klikając w przycisk 'Zakończ test'
+    </ul>
+    <div class="flex-center">
+        <button id="start-test-btn">Rozpocznij test</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/test.min.js"></script>
+}

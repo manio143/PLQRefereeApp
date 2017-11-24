@@ -32,7 +32,6 @@ namespace PLQRefereeApp
                 throw new ArgumentException("Cannot add an object for the seconds time.");
             Context.Users.Add(user);
             Context.SaveChanges();
-            user = GetUser(user.Email); //get the updated Id
             data.Id = user.Id;
             Context.UserData.Add(data);
             Context.SaveChanges();
@@ -43,6 +42,30 @@ namespace PLQRefereeApp
             if (data.Arcooldown.HasValue && data.Arcooldown.Value > DateTime.Now) data.Arcooldown = null;
             if (data.Srcooldown.HasValue && data.Srcooldown.Value > DateTime.Now) data.Srcooldown = null;
             if (data.Hrcooldown.HasValue && data.Hrcooldown.Value > DateTime.Now) data.Hrcooldown = null;
+            Context.SaveChanges();
+        }
+
+        internal void AddCertificate(User user, QuestionType questionType, Test test)
+        {
+            var data = GetUserData(user);
+            switch (questionType)
+            {
+                case QuestionType.AR: data.Ar = test.Id; break;
+                case QuestionType.SR: data.Sr = test.Id; break;
+                case QuestionType.HR: data.Hr = test.Id; break;
+            }
+            Context.SaveChanges();
+        }
+
+        internal void SetCooldown(User user, QuestionType questionType)
+        {
+            var data = GetUserData(user);
+            switch (questionType)
+            {
+                case QuestionType.AR: data.Arcooldown = DateTime.Now.AddDays(6); break;
+                case QuestionType.SR: data.Srcooldown = DateTime.Now.AddDays(6); break;
+                case QuestionType.HR: data.Hrcooldown = DateTime.Now.AddDays(6); break;
+            }
             Context.SaveChanges();
         }
     }

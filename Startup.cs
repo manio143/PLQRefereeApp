@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace PLQRefereeApp
 {
@@ -50,15 +51,20 @@ namespace PLQRefereeApp
                             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                         else
                             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                        options.SlidingExpiration = true;
+                        options.Events = new CookieAuthenticationEvents()
+                        {
+                            OnValidatePrincipal = Authentication.ValidatePrincipal
+                        };
                         options.Validate();
                     });
             services.AddDbContext<MainContext>(options => options.UseMySql(Configuration.GetConnectionString("Database")));
             services.AddAntiforgery(options =>
             {
-                options.Cookie.Name = "CsrfToken";
+                options.Cookie.Name = "CSRFToken";
                 options.Cookie.HttpOnly = false;
                 options.FormFieldName = "csrftoken";
-                options.HeaderName = "X-CSRF-TOKEN";
+                options.HeaderName = "X-CSRF-Token";
                 options.SuppressXFrameOptionsHeader = false;
                 if (Configuration.GetValue("SessionCookieAlwaysSecure", true))
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -72,7 +78,7 @@ namespace PLQRefereeApp
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IAntiforgery antiforgery)
         {
             if (env.IsDevelopment())
             {
@@ -89,12 +95,52 @@ namespace PLQRefereeApp
 
             app.UseStaticFiles();
 
+            //CSRF
+            app.Use(next => context =>
+            {
+                var path = context.Request.Path.Value;
+                if (path == "/test" || path == "/test-answer" || path == "/test-start" || path == "/test-finish")
+                {
+                    var tokens = antiforgery.GetAndStoreTokens(context);
+                    context.Response.Cookies.Append(tokens.HeaderName, tokens.RequestToken,
+                            new CookieOptions() { HttpOnly = false });
+                }
+                return next(context);
+            });
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller}/{action=Index}/{id?}");
             });
+
+            RunTestSaverAsync();
+        }
+
+        public async void RunTestSaverAsync()
+        {
+            var ctxOptions = new DbContextOptionsBuilder<MainContext>();
+            ctxOptions.UseMySql(Configuration.GetConnectionString("Database"));
+            while (true)
+            {
+                await Task.Delay(30 * 1000);
+                using (var ctx = new MainContext(ctxOptions.Options))
+                {
+                    var testRepository = new TestRepository(ctx);
+                    var userRepository = new UserRepository(ctx);
+                    var testsToSave = ctx.Tests.Where(t => t.Started != null && t.Finished == null && t.Started < DateTime.Now.AddMinutes(-1 * t.Type.ToQuestionType().Duration().Minutes));
+                    foreach (var test in testsToSave)
+                    {
+                        var user = userRepository.GetUser(test.UserId);
+                        var mark = testRepository.MarkTest(test);
+                        if (mark >= 80)
+                            userRepository.AddCertificate(user, test.Type.ToQuestionType(), test);
+                        else
+                            userRepository.SetCooldown(user, test.Type.ToQuestionType());
+                    }
+                }
+            }
         }
     }
 }
