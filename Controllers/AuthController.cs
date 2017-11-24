@@ -135,5 +135,21 @@ namespace PLQRefereeApp
             await SetAuthSession(user);
             return LocalRedirect("/");
         }
+
+        [Route("/forgot")]
+        [HttpGet]
+        public IActionResult Forgot()
+        {
+            return View("Forgot", null);
+        }
+
+        [Route("/forgot")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ForgotPost([FromForm]string password)
+        {
+            var passphrase = BCrypt.Net.BCrypt.HashPassword(password, 13);
+            return View("Forgot", passphrase);
+        }
     }
 }

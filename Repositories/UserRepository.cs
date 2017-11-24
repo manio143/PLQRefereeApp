@@ -58,6 +58,12 @@ namespace PLQRefereeApp
             Context.SaveChanges();
         }
 
+        internal void ChangePassword(User user, string passphrase)
+        {
+            user.Passphrase = passphrase;
+            Context.SaveChanges();
+        }
+
         internal void SetCooldown(User user, QuestionType questionType)
         {
             var data = GetUserData(user);

@@ -38,5 +38,33 @@ namespace PLQRefereeApp
             ViewBag.Options = true;
             return View("Account", data);
         }
+
+        [Route("/account/pwdchange")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult PasswordChangeForm()
+        {
+            return View("PasswordChange");
+        }
+
+        [Route("/account/pwdchange")]
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public IActionResult PasswordChangePost([FromForm]string oldpwd, [FromForm]string newpwd)
+        {
+            var auth = new Authentication(UserRepository);
+            var user = HttpContext.Session.GetUser(UserRepository);
+            
+            if(!auth.TryAuthenticateUser(user.Email, oldpwd, out var usr))
+                ViewBag.Error = true;
+            else {
+                var passphrase = BCrypt.Net.BCrypt.HashPassword(newpwd, 13);
+                UserRepository.ChangePassword(user, passphrase);
+                ViewBag.Success = true;
+            }
+
+            return View("PasswordChange");
+        }
     }
 }

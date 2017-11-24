@@ -1,0 +1,40 @@
+@model string
+@{
+    ViewData["Title"] = "Nie pamiętam hasła";
+}
+
+<h1>@ViewData["Title"]</h1>
+<p>Ponieważ nie mamy skonfigurowanego systemu pocztowego, to nie możemy na razie wysłać ci maila z linkiem do zresetowania hasła. Dlatego użyj poniższej formy, aby wygenerować nowy hash do swojego hasło (musi mieć ponad 8 znaków). Następnie prześlij je drogą mailową do PLQ, z tytułem "PLQ-REF FORGOT" i linkiem do swojego profilu publicznego.</p>
+
+<form method="POST">
+    <label for="password">Hasło</label>
+    <input type="password" name="password" id="np">
+    @Html.AntiForgeryToken()
+    <button type="submit" id="submit">Zakoduj</button>
+</form>
+
+@if (Model != null) {
+    <p>Hash:&emsp; @Model</p>
+}
+
+@section Scripts {
+    <script>
+    window.onload = function() {
+        let pwd = document.getElementById("np");
+        let sbmt = document.getElementById("submit");
+
+        let passCheck = () => {
+            if(pwd.value.length < 8)
+                pwd.setCustomValidity("Hasło musi mieć przynajmniej 8 znaków!");
+            else pwd.setCustomValidity("");
+        };
+
+        pwd.onkeydown = () => {
+            passCheck();
+        };
+        sbmt.onclick = () => {
+            passCheck();
+        };
+    }
+</script>
+}
