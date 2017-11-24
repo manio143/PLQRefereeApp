@@ -34,6 +34,11 @@ namespace PLQRefereeApp
             Context.Tests.RemoveRange(Context.Tests.Where(t => t.Started == null && t.Created < DateTime.Now.AddDays(-1)));
         }
 
+        public IEnumerable<Test> GetTestsFor(User user)
+        {
+            return Context.Tests.Where(t => t.UserId == user.Id);
+        }
+
         public void MarkAnswer(int testId, int questionId, int answerId)
         {
             if (!Context.Tests.Any(t => t.Id == testId))
@@ -60,7 +65,8 @@ namespace PLQRefereeApp
             if(test.Finished != null && test.Mark.HasValue)
                 return test.Mark.Value;
 
-            test.Finished = DateTime.Now;
+            if(test.Finished == null) 
+                test.Finished = DateTime.Now;
 
             var testQuestions = GetTestQuestionsFor(test);
             var total = testQuestions.Count();

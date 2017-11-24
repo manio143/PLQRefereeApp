@@ -15,7 +15,8 @@ namespace PLQRefereeApp
 
         public User GetUser(string email) => Context.Users.First(user => user.Email == email);
         public User GetUser(int id) => Context.Users.FirstOrDefault(user => user.Id == id);
-        public UserData GetUserData(User user) => Context.UserData.First(data => data.Id == user.Id);
+        public UserData GetUserData(User user) => GetUserData(user.Id);
+        public UserData GetUserData(int id) => Context.UserData.First(data => data.Id == id);
         public IEnumerable<UserData> GetAllUserData()
         {
             return (from data in Context.UserData
