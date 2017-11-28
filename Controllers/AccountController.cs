@@ -17,8 +17,7 @@ namespace PLQRefereeApp
             TestRepository = testRepository;
         }
 
-        [Route("/profile/{id}")]
-        [HttpGet]
+        [HttpGet("/profile/{id}")]
         public IActionResult Profile(int id)
         {
             var data = UserRepository.GetUserData(id);
@@ -26,9 +25,8 @@ namespace PLQRefereeApp
             return View("Account", data);
         }
 
-        [Route("/account/details")]
-        [HttpGet]
         [Authorize]
+        [HttpGet("/account/details")]
         public IActionResult Account()
         {
             var user = HttpContext.Session.GetUser(UserRepository);
@@ -39,17 +37,15 @@ namespace PLQRefereeApp
             return View("Account", data);
         }
 
-        [Route("/account/pwdchange")]
-        [HttpGet]
         [Authorize]
+        [HttpGet("/account/pwdchange")]
         public IActionResult PasswordChangeForm()
         {
             return View("PasswordChange");
         }
 
-        [Route("/account/pwdchange")]
-        [HttpPost]
         [Authorize]
+        [HttpPost("/account/pwdchange")]
         [ValidateAntiForgeryToken]
         public IActionResult PasswordChangePost([FromForm]string oldpwd, [FromForm]string newpwd)
         {
@@ -67,17 +63,15 @@ namespace PLQRefereeApp
             return View("PasswordChange");
         }
 
-        [Route("/account/teamchange")]
-        [HttpGet]
         [Authorize]
+        [HttpGet("/account/teamchange")]
         public IActionResult TeamChangeForm()
         {
             return View("TeamChange");
         }
 
-        [Route("/account/teamchange")]
-        [HttpPost]
         [Authorize]
+        [HttpPost("/account/teamchange")]
         [ValidateAntiForgeryToken]
         public IActionResult TeamChangePost([FromForm]string team)
         {

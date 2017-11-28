@@ -15,8 +15,7 @@ namespace PLQRefereeApp
             UserRepository = userRepository;
         }
 
-        [Route("/directory")]
-        [HttpGet]
+        [HttpGet("/directory")]
         public IActionResult Directory(string filter = "all")
         {
             var refs = UserRepository.GetAllUserData();

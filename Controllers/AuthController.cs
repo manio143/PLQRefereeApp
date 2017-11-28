@@ -42,8 +42,7 @@ namespace PLQRefereeApp
             Authentication = new Authentication(userRepository);
         }
 
-        [Route("/login")]
-        [HttpGet]
+        [HttpGet("/login")]
         public IActionResult LoginView(string returnUrl = null)
         {
             if (HttpContext.User.Identity.IsAuthenticated)
@@ -51,8 +50,7 @@ namespace PLQRefereeApp
             return View("Login");
         }
 
-        [Route("/login")]
-        [HttpPost]
+        [HttpPost("/login")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LoginPost(LoginPostData loginData, string returnUrl = null)
         {
@@ -68,8 +66,7 @@ namespace PLQRefereeApp
             }
         }
 
-        [Route("/logout")]
-        [HttpGet]
+        [HttpGet("/logout")]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(Authentication.Scheme);
@@ -96,8 +93,7 @@ namespace PLQRefereeApp
             HttpContext.Session.SetInt32("UserId", user.Id);
         }
 
-        [Route("/register")]
-        [HttpGet]
+        [HttpGet("/register")]
         public IActionResult Register()
         {
             if (HttpContext.User.Identity.IsAuthenticated)
@@ -105,8 +101,7 @@ namespace PLQRefereeApp
             return View("Register");
         }
 
-        [Route("/register")]
-        [HttpPost]
+        [HttpPost("/register")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterPost(RegisterPostData registerData)
         {
@@ -136,15 +131,13 @@ namespace PLQRefereeApp
             return LocalRedirect("/");
         }
 
-        [Route("/forgot")]
-        [HttpGet]
+        [HttpGet("/forgot")]
         public IActionResult Forgot()
         {
             return View("Forgot", null);
         }
 
-        [Route("/forgot")]
-        [HttpPost]
+        [HttpPost("/forgot")]
         [ValidateAntiForgeryToken]
         public IActionResult ForgotPost([FromForm]string password)
         {

@@ -28,33 +28,29 @@ namespace PLQRefereeApp
             return View("TestPage", type);
         }
 
-        [Route("/test/AR")]
-        [HttpGet]
         [Authorize]
+        [HttpGet("/test/AR")]
         public IActionResult TestPageAr()
         {
             return TestPage(QuestionType.AR);
         }
 
-        [Route("/test/SR")]
-        [HttpGet]
         [Authorize]
+        [HttpGet("/test/SR")]
         public IActionResult TestPageSr()
         {
             return TestPage(QuestionType.SR);
         }
 
-        [Route("/test/HR")]
-        [HttpGet]
         [Authorize]
+        [HttpGet("/test/HR")]
         public IActionResult TestPageHr()
         {
             return TestPage(QuestionType.HR);
         }
 
-        [Route("/test")]
-        [HttpPost]
         [Authorize]
+        [HttpPost("/test")]
         [ValidateAntiForgeryToken]
         public IActionResult TestEnvironment([FromForm]string test)
         {
@@ -74,9 +70,8 @@ namespace PLQRefereeApp
             return View(type);
         }
 
-        [Route("/test-answer")]
-        [HttpPost]
         [Authorize]
+        [HttpPost("/test-answer")]
         [ValidateAntiForgeryToken]
         public IActionResult TestAnswer([FromBody]TestAnswerClass answer)
         {
@@ -87,9 +82,8 @@ namespace PLQRefereeApp
 
         public class TestAnswerClass { public int q { get; set; } public int a { get; set; } }
 
-        [Route("/test-start")]
-        [HttpPost]
         [Authorize]
+        [HttpPost("/test-start")]
         [ValidateAntiForgeryToken]
         public IActionResult TestStart()
         {
@@ -98,9 +92,8 @@ namespace PLQRefereeApp
             return Json(PrepareQuestions(test, markWrongAnswer: false));
         }
 
-        [Route("/test-finish")]
-        [HttpPost]
         [Authorize]
+        [HttpPost("/test-finish")]
         [ValidateAntiForgeryToken]
         public IActionResult TestFinish()
         {

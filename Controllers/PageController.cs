@@ -9,12 +9,12 @@ namespace PLQRefereeApp
 {
     public class PageController : Controller
     {
-        [Route("/")]
+        [HttpGet("/")]
         public IActionResult Index() {
             return View();
         }
 
-        [Route("/materials")]
+        [HttpGet("/materials")]
         public IActionResult Materials() {
             return View();
         }
