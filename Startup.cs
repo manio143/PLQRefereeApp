@@ -108,6 +108,10 @@ namespace PLQRefereeApp
                 return next(context);
             });
 
+            app.UseStatusCodePages();
+
+            app.UseSecurityHeaders();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
