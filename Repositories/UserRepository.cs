@@ -75,5 +75,12 @@ namespace PLQRefereeApp
             }
             Context.SaveChanges();
         }
+
+        internal void ChangeTeam(User user, string team)
+        {
+            var data = GetUserData(user);
+            data.Team = String.IsNullOrWhiteSpace(team) ? String.Empty : team;
+            Context.SaveChanges();
+        }
     }
 }

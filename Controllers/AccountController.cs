@@ -66,5 +66,24 @@ namespace PLQRefereeApp
 
             return View("PasswordChange");
         }
+
+        [Route("/account/teamchange")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult TeamChangeForm()
+        {
+            return View("TeamChange");
+        }
+
+        [Route("/account/teamchange")]
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public IActionResult TeamChangePost([FromForm]string team)
+        {
+            var user = HttpContext.Session.GetUser(UserRepository);
+            UserRepository.ChangeTeam(user, team);
+            return LocalRedirect("/account/details");
+        }
     }
 }
