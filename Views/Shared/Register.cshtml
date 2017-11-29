@@ -1,0 +1,103 @@
+@{
+    ViewData["Title"] = "Rejestracja";
+    var error = (RegisterError?)ViewData["Error"];
+}
+
+<h1>Rejestracja</h1>
+@if (error == RegisterError.InvalidValue) {
+<p class="red">Wprowadzone dane są nieprawidłowe.</p>
+} else if (error == RegisterError.EmailAlreadyInUse) {
+<p class="red">Podane adres email jest już w użyciu.</p>
+}
+
+<form method="POST" id="register-form">
+    <div id="register">
+        <div>
+            <label for="email">Email<span class="red">*</span></label>
+            <input type="email" name="email" required>
+        </div>
+        <div>
+            <label for="password">Hasło<span class="red">*</span> (min 8 znaków)</label>
+            <input type="password" name="password" id="password" required>
+        </div>
+        <div>
+            <label>Powtórz hasło<span class="red">*</span></label>
+            <input type="password" id="password-r" required>
+        </div>
+        <div style="display: block">
+            <p>Siła twojego hasła <span id="pwd-strength">........</span></p>
+        </div>
+        <div>
+            <label for="name">Imię<span class="red">*</span></label>
+            <input type="text" name="name" required>
+        </div>
+        <div>
+            <label for="surname">Nazwisko<span class="red">*</span></label>
+            <input type="text" name="surname" required>
+        </div>
+        <div>
+            <label for="team">Drużyna</label>
+            <input type="text" name="team">
+        </div>
+        <div>
+            @Html.AntiForgeryToken()
+            <button type="submit" id="submit">Rejestruj</button>
+        </div>
+    </div>
+    <div>
+        Hasło powinno:
+        <ul>
+            <li>Mieć conajmniej 10 znaków.</li>
+            <li>Nie powtarzać się na innych twoich kontach.</li>
+            <li>Nie być "znanym" hasłem (na liście popularnych haseł).</li>
+            <li>Łatwe do zapamiętania są frazy (patrz <a href="https://www.xkcd.com/936/">komiks XKCD</a>).</li>
+        </ul>
+    </div>
+</form>
+
+@section Scripts {
+<script src="/js/zxcvbn.js" async></script>
+<script>
+    window.onload = function() {
+        let pwd = document.getElementById("password");
+        let pwdr = document.getElementById("password-r");
+        let sbmt = document.getElementById("submit");
+        let pwdStrength = document.getElementById("pwd-strength");
+
+        let passCheck = () => {
+            if(pwd.value.length < 8)
+                pwd.setCustomValidity("Hasło musi mieć przynajmniej 8 znaków!");
+            else pwd.setCustomValidity("");
+
+            if(pwd.value != pwdr.value)
+                pwdr.setCustomValidity("Hasła muszą się zgadzać!");
+            else pwdr.setCustomValidity("");
+        };
+
+        pwd.onkeydown = () => {
+            let result = zxcvbn(pwd.value);
+            if(result.score <= 1) {
+                pwdStrength.innerText = "Słabe";
+                pwdStrength.style.color = "red";
+            } else if (result.score == 2) {
+                pwdStrength.innerText = "Średnie";
+                pwdStrength.style.color = "#f7c120";
+            } else if (result.score == 3) {
+                pwdStrength.innerText = "Dobre";
+                pwdStrength.style.color = "green";
+            }
+            else {
+                pwdStrength.innerText = "Wspaniałe";
+                pwdStrength.style.color = "green";
+            }
+            passCheck();
+        };
+        pwdr.onkeydown = () => {
+            passCheck();
+        };
+        sbmt.onclick = () => {
+            passCheck();
+        };
+    }
+</script>
+}

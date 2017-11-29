@@ -1,0 +1,66 @@
+@model UserData
+@{
+    ViewData["Title"] = (bool)ViewData["Options"] ? "Twoje konto" : "Profil " + Model.Name + " " + Model.Surname;
+}
+
+<h1>@ViewData["Title"]</h1>
+@if (Model.Team != null) {
+<p>Drużyna: @Model.Team</p>
+}
+<div class="flex-wrapper">
+    <div>
+        <h3>Certyfikaty</h3>
+        @if(!Model.IsCertified) {
+        <p>Brak certyfikatów</p>
+        }
+        @if(Model.IsArCertified) {
+        <p>Sędzia Pomocniczy</p>
+        }
+        @if(Model.IsSrCertified) {
+        <p>Sędzia Zniczowy</p>
+        }
+        @if(Model.IsHrCertified) {
+        <p>Sędzia Główny</p>
+        }
+
+        @if((bool)ViewData["Options"]) {
+            <div>
+                <h3>Testy</h3>
+                <table style="width: 70%">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Czas trwania</th>
+                            <th>Typ</th>
+                            <th>Ocena</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var test in (IEnumerable<Test>)ViewData["Tests"]) {
+                            <tr>
+                                <td style="text-align: center">@(((DateTime)test.Started).ToString("dd-MM-yyyy hh:mm"))</td>
+                                <td style="text-align: center">@(((TimeSpan)(test.Finished.Value.Subtract(test.Started.Value))).ToString("mm\\:ss"))</td>
+                                <td style="text-align: center">@test.Type</td>
+                                <td style="text-align: center">@test.Mark%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+    @if((bool)ViewData["Options"]) {
+    <div>
+        <div id="settings">
+            <h3>Ustawienia</h3>
+            <a href="/profile/@Model.Id">Publiczny profil</a>
+            <div id="password-change">
+                <a href="/account/pwdchange">Zmień hasło</a>
+            </div>
+            <div id="team-change">
+                <a href="/account/teamchange">Zmień drużynę</a>
+            </div>
+        </div>
+    </div>
+    }
+</div>

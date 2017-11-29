@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Zmiana drużyny";
+}
+
+<h1>Zmiana drużyny</h1>
+<form method="POST" id="register-form">
+    <div id="register">
+    <div>
+        <label for="team">Drużyna</label>
+        <input type="text" name="team">
+    </div>
+    <div>
+        @Html.AntiForgeryToken()
+        <button type="submit" id="submit">Zmień</button>
+    </div>
+    </div>
+</form>

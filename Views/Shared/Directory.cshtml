@@ -1,0 +1,51 @@
+@model IEnumerable<UserData>
+@{
+    ViewData["Title"] = "Lista sędziów";
+}
+
+<h1>Lista sędziów</h1>
+<p>Filtruj: <a href="/directory?filter=all">Wszyscy</a> | <a href="/directory?filter=any">Certyfikowani</a> | <a href="/directory?filter=ar">AR</a> | <a href="/directory?filter=sr">SR</a> | <a href="/directory?filter=asr">AR+SR</a> | <a href="/directory?filter=hr">HR</a></p>
+<table id="directory">
+    <thead>
+        <tr>
+            <td>Imię</td>
+            <td>Nazwisko</td>
+            <td>Drużyna</td>
+            <td>AR</td>
+            <td>SR</td>
+            <td>HR</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var user in Model) {
+            <tr>
+                <td><a href="/profile/@user.Id">@user.Name</a></td>
+                <td><a href="/profile/@user.Id">@user.Surname</a></td>
+                <td>@user.Team</td>
+                <td>
+                    @if (user.ArIrdp == true) {
+                        <span style="color:green">✔</span>
+                    } else if (user.IsArCertified){
+                        <span>✓</span>
+                    }
+                </td>
+                <td>
+                    @if (user.SrIrdp == true) {
+                        <span style="color:green">✔</span>
+                    } else if (user.IsSrCertified){
+                        <span>✓</span>
+                    }
+                </td>
+                <td>
+                    @if (user.HrIrdp == true) {
+                        <span style="color:green">✔</span>
+                    } else if (user.IsHrCertified){
+                        <span>✓</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p>✓ - zaliczony test</p>
+<p><span style="color:green">✔</span> - zaliczony test na portalu IRDP</p>
