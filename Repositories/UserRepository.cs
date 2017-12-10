@@ -40,9 +40,9 @@ namespace PLQRefereeApp
         public void CleanUserCooldowns(User user)
         {
             var data = GetUserData(user);
-            if (data.Arcooldown.HasValue && data.Arcooldown.Value > DateTime.Now) data.Arcooldown = null;
-            if (data.Srcooldown.HasValue && data.Srcooldown.Value > DateTime.Now) data.Srcooldown = null;
-            if (data.Hrcooldown.HasValue && data.Hrcooldown.Value > DateTime.Now) data.Hrcooldown = null;
+            if (data.Arcooldown.HasValue && data.Arcooldown.Value < DateTime.Now) data.Arcooldown = null;
+            if (data.Srcooldown.HasValue && data.Srcooldown.Value < DateTime.Now) data.Srcooldown = null;
+            if (data.Hrcooldown.HasValue && data.Hrcooldown.Value < DateTime.Now) data.Hrcooldown = null;
             Context.SaveChanges();
         }
 

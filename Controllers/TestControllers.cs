@@ -23,6 +23,7 @@ namespace PLQRefereeApp
 
         private IActionResult TestPage(QuestionType type) {
             ViewBag.User = HttpContext.Session.GetUser(UserRepository);
+            UserRepository.CleanUserCooldowns(ViewBag.User);
             ViewBag.UserData = UserRepository.GetUserData(ViewBag.User);
             ViewBag.AlreadyStarted = TestRepository.HasStartedATest(ViewBag.User);
             return View("TestPage", type);
@@ -57,8 +58,6 @@ namespace PLQRefereeApp
             var type = test.ToQuestionType();
             var user = HttpContext.Session.GetUser(UserRepository);
             var userData = UserRepository.GetUserData(user);
-
-            UserRepository.CleanUserCooldowns(user);
 
             if (!userData.CanTakeTestOf(type) || TestRepository.HasStartedATest(user))
                 return BadRequest();

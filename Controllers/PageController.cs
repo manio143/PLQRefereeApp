@@ -18,5 +18,10 @@ namespace PLQRefereeApp
         public IActionResult Materials() {
             return View();
         }
+
+        [HttpGet("/payment")]
+        public IActionResult Payment() {
+            return View();
+        }
     }
 }
