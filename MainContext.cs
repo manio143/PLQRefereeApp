@@ -37,7 +37,7 @@ namespace PLQRefereeApp
 
                 entity.Property(e => e.Correct)
                     .HasColumnName("correct")
-                    .HasColumnType("tinyint(1)");
+                    .HasColumnType("boolean");
             });
 
             modelBuilder.Entity<Question>(entity =>
@@ -168,7 +168,7 @@ namespace PLQRefereeApp
 
                 entity.Property(e => e.ArIrdp)
                     .HasColumnName("arIRDP")
-                    .HasColumnType("tinyint(1)")
+                    .HasColumnType("boolean")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Arcooldown)
@@ -181,12 +181,12 @@ namespace PLQRefereeApp
 
                 entity.Property(e => e.HrIrdp)
                     .HasColumnName("hrIRDP")
-                    .HasColumnType("tinyint(1)")
+                    .HasColumnType("boolean")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.HrPayment)
                     .HasColumnName("hrPayment")
-                    .HasColumnType("tinyint(1)")
+                    .HasColumnType("boolean")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Hrcooldown)
@@ -204,7 +204,7 @@ namespace PLQRefereeApp
 
                 entity.Property(e => e.SrIrdp)
                     .HasColumnName("srIRDP")
-                    .HasColumnType("tinyint(1)")
+                    .HasColumnType("boolean")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Srcooldown)
@@ -231,7 +231,7 @@ namespace PLQRefereeApp
 
                 entity.Property(e => e.Administrator)
                     .HasColumnName("administrator")
-                    .HasColumnType("tinyint(1)");
+                    .HasColumnType("boolean");
 
                 entity.Property(e => e.Email)
                     .IsRequired()
