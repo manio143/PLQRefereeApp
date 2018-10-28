@@ -16,7 +16,7 @@ CREATE TABLE Users (
     passphrase VARCHAR(64) NOT NULL,
     administrator BOOLEAN NOT NULL,
     reset VARCHAR(128) -- hash of reset password token
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE Test (
     id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -25,8 +25,9 @@ CREATE TABLE Test (
     finished DATETIME,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     type VARCHAR(2) NOT NULL,
+    `mark` INT NULL DEFAULT NULL,
     FOREIGN KEY (userId) REFERENCES Users(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE UserData (
     id INTEGER PRIMARY KEY,
@@ -48,20 +49,20 @@ CREATE TABLE UserData (
     FOREIGN KEY(ar) REFERENCES Test(id),
     FOREIGN KEY(sr) REFERENCES Test(id),
     FOREIGN KEY(hr) REFERENCES Test(id)    
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE Answer (
     id INTEGER PRIMARY KEY,
     correct BOOLEAN NOT NULL,
     answer VARCHAR(1000) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE Question (
     id INTEGER PRIMARY KEY,
     question VARCHAR(1000) NOT NULL,
     information VARCHAR(120) NOT NULL DEFAULT '',
     type VARCHAR(2) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE QuestionsAnswer (
     questionId INTEGER NOT NULL,
@@ -69,7 +70,7 @@ CREATE TABLE QuestionsAnswer (
     PRIMARY KEY (questionId, answerId),
     FOREIGN KEY (questionId) REFERENCES Question(id),
     FOREIGN KEY (answerId) REFERENCES Answer(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE TestQuestion (
     testId INTEGER NOT NULL,
@@ -80,13 +81,30 @@ CREATE TABLE TestQuestion (
         ON DELETE CASCADE,
     FOREIGN KEY (questionId) REFERENCES Question(id),
     FOREIGN KEY (answerId) REFERENCES Answer(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE Sessions (
-    sessionId VARCHAR(256) NOT NULL PRIMARY KEY,
-    csrftoken VARCHAR(128) NOT NULL,
-    expires DATETIME NOT NULL,
-    userId INTEGER NULL,
-    testId INTEGER NULL,
-    FOREIGN KEY(userId) REFERENCES Users(id)
-);
+-- Add cascade information
+
+ALTER TABLE `TestQuestion`
+DROP FOREIGN KEY `TestQuestion_ibfk_1`;
+
+ALTER TABLE `TestQuestion`
+ADD CONSTRAINT `TestQuestion_ibfk_1` FOREIGN KEY (`testId`) REFERENCES `Test`(`id`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `TestQuestion`
+DROP FOREIGN KEY `TestQuestion_ibfk_2`;
+
+ALTER TABLE `TestQuestion`
+ADD CONSTRAINT `TestQuestion_ibfk_2` FOREIGN KEY (`questionId`) REFERENCES `Question`(`id`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `TestQuestion`
+DROP FOREIGN KEY `TestQuestion_ibfk_3`;
+
+ALTER TABLE `TestQuestion`
+ADD CONSTRAINT `TestQuestion_ibfk_3` FOREIGN KEY (`answerId`) REFERENCES `Answer`(`id`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
