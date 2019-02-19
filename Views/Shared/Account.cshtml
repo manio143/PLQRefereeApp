@@ -15,21 +15,21 @@
         }
         @if(Model.IsArCertified) {
         <p>Sędzia Pomocniczy
-            if(ViewData["ARCerts"] != null) {
+            @if(ViewData["ARCerts"] != null) {
                 <span>@String.Join(", ", ViewData["ARCerts"])</span>
             }
         </p>
         }
         @if(Model.IsSrCertified) {
         <p>Sędzia Zniczowy
-            if(ViewData["SRCerts"] != null) {
+            @if(ViewData["SRCerts"] != null) {
                 <span>@String.Join(", ", ViewData["SRCerts"])</span>
             }
         </p>
         }
         @if(Model.IsHrCertified) {
         <p>Sędzia Główny
-            if(ViewData["HRCerts"] != null) {
+            @if(ViewData["HRCerts"] != null) {
                 <span>@String.Join(", ", ViewData["HRCerts"])</span>
             }
         </p>
