@@ -16,6 +16,7 @@ namespace PLQRefereeApp
         public int Id { get; set; }
         public string Value { get; set; }
         public string Information { get; set; }
+        public RulebookVersion Rulebook { get; set; }
         public string TypeData
         {
             get

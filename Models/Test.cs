@@ -14,6 +14,7 @@ namespace PLQRefereeApp
         public DateTime? Finished { get; set; }
         public DateTime Created { get; set; }
         public string Type { get; set; }
+        public RulebookVersion Rulebook { get; set; }
         public int? Mark { get; set; }
 
         public User User { get; set; }

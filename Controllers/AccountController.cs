@@ -20,8 +20,18 @@ namespace PLQRefereeApp
         [HttpGet("/profile/{id}")]
         public IActionResult Profile(int id)
         {
+            var user = UserRepository.GetUser(id);
             var data = UserRepository.GetUserData(id);
-            ViewBag.Options = false;            
+            var arCerts = TestRepository.GetTestsFor(user).Where(t => t.Mark >= 80 && t.Type == "AR")
+                            .Select(t => t.Rulebook).ToArray();
+            var srCerts = TestRepository.GetTestsFor(user).Where(t => t.Mark >= 80 && t.Type == "SR")
+                            .Select(t => t.Rulebook).ToArray();
+            var hrCerts = TestRepository.GetTestsFor(user).Where(t => t.Mark >= 80 && t.Type == "HR")
+                            .Select(t => t.Rulebook).ToArray();
+            ViewBag.Options = false;
+            ViewBag.ARCerts = arCerts;
+            ViewBag.SRCerts = srCerts;
+            ViewBag.HRCerts = hrCerts;
             return View("Account", data);
         }
 
@@ -76,7 +86,7 @@ namespace PLQRefereeApp
         public IActionResult TeamChangePost([FromForm]string team)
         {
             var user = HttpContext.Session.GetUser(UserRepository);
-            UserRepository.ChangeTeam(user, team);
+            UserRepository.ChangeTeam(user, team.Trim());
             return LocalRedirect("/account/details");
         }
     }

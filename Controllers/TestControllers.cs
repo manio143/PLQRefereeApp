@@ -150,24 +150,27 @@ namespace PLQRefereeApp
             return test;
         }
 
+        public const RulebookVersion CurrentRulebookVersion = RulebookVersion.Rulebook1820;
+
         private Test NewTest(QuestionType type)
         {
             List<Question> questions = null;
             switch (type)
             {
                 case QuestionType.AR:
-                    questions = QuestionRepository.GetARQuestions().Scramble().Take(25).ToList();
+                    questions = QuestionRepository.GetARQuestions(CurrentRulebookVersion).Scramble().Take(25).ToList();
                     break;
                 case QuestionType.SR:
-                    questions = QuestionRepository.GetSRQuestions().Scramble().Take(20).Concat(QuestionRepository.GetARQuestions().Scramble().Take(5)).Scramble().ToList();
+                    questions = QuestionRepository.GetSRQuestions(CurrentRulebookVersion).Scramble().Take(20).Concat(QuestionRepository.GetARQuestions(CurrentRulebookVersion).Scramble().Take(5)).Scramble().ToList();
                     break;
                 case QuestionType.HR:
-                    questions = QuestionRepository.GetHRQuestions().Scramble().Take(50).ToList();
+                    questions = QuestionRepository.GetHRQuestions(CurrentRulebookVersion).Scramble().Take(50).ToList();
                     break;
             }
             var test = new Test();
             test.Questions = questions;
             test.Type = type.ToString();
+            test.Rulebook = CurrentRulebookVersion;
             return test;
         }
     }

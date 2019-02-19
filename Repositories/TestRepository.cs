@@ -32,6 +32,7 @@ namespace PLQRefereeApp
         public void RemoveUnusedTests()
         {
             Context.Tests.RemoveRange(Context.Tests.Where(t => t.Started == null && t.Created < DateTime.Now.AddDays(-1)));
+            Context.SaveChanges();
         }
 
         public IEnumerable<Test> GetTestsFor(User user)

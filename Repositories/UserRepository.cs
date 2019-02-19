@@ -69,9 +69,9 @@ namespace PLQRefereeApp
             var data = GetUserData(user);
             switch (questionType)
             {
-                case QuestionType.AR: data.Arcooldown = DateTime.Now.AddDays(6); break;
-                case QuestionType.SR: data.Srcooldown = DateTime.Now.AddDays(6); break;
-                case QuestionType.HR: data.Hrcooldown = DateTime.Now.AddDays(6); break;
+                case QuestionType.AR: data.Arcooldown = DateTime.Now.AddDays(1); break;
+                case QuestionType.SR: data.Srcooldown = DateTime.Now.AddDays(1); break;
+                case QuestionType.HR: data.Hrcooldown = DateTime.Now.AddDays(2); break;
             }
             Context.SaveChanges();
         }

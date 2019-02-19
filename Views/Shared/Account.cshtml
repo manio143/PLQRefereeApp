@@ -14,24 +14,37 @@
         <p>Brak certyfikatów</p>
         }
         @if(Model.IsArCertified) {
-        <p>Sędzia Pomocniczy</p>
+        <p>Sędzia Pomocniczy
+            if(ViewData["ARCerts"] != null) {
+                <span>@String.Join(", ", ViewData["ARCerts"])</span>
+            }
+        </p>
         }
         @if(Model.IsSrCertified) {
-        <p>Sędzia Zniczowy</p>
+        <p>Sędzia Zniczowy
+            if(ViewData["SRCerts"] != null) {
+                <span>@String.Join(", ", ViewData["SRCerts"])</span>
+            }
+        </p>
         }
         @if(Model.IsHrCertified) {
-        <p>Sędzia Główny</p>
+        <p>Sędzia Główny
+            if(ViewData["HRCerts"] != null) {
+                <span>@String.Join(", ", ViewData["HRCerts"])</span>
+            }
+        </p>
         }
 
         @if((bool)ViewData["Options"]) {
             <div>
                 <h3>Testy</h3>
-                <table style="width: 70%">
+                <table style="width: 100%">
                     <thead>
                         <tr>
                             <th>Data</th>
                             <th>Czas trwania</th>
                             <th>Typ</th>
+                            <th>Rulebook</th>
                             <th>Ocena</th>
                         </tr>
                     </thead>
@@ -41,6 +54,7 @@
                                 <td style="text-align: center">@(((DateTime)test.Started).ToString("dd-MM-yyyy hh:mm"))</td>
                                 <td style="text-align: center">@(((TimeSpan)(test.Finished.Value.Subtract(test.Started.Value))).ToString("mm\\:ss"))</td>
                                 <td style="text-align: center">@test.Type</td>
+                                <td style="text-align: center">@test.Rulebook</td>
                                 <td style="text-align: center">@test.Mark%</td>
                             </tr>
                         }
