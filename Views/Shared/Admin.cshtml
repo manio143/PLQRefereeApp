@@ -1,4 +1,5 @@
-﻿@{
+﻿@model AdminViewModel
+@{
     ViewData["Title"] = "Admin";
 }
 
@@ -20,3 +21,51 @@
     <input type="submit">
 </form>
 
+<h2>Tests</h2>
+<table>
+    <thead>
+        <th>Id</th>
+        <th>UserId</th>
+        <th>Rulebook</th>
+        <th>Type</th>
+        <th>Mark</th>
+        <th>Started</th>
+    </thead>
+    <tbody>
+        @foreach(var test in Model.Tests) {
+        <tr>
+            <td>@test.Id</td>
+            <td>@test.UserId</td>
+            <td>@test.Rulebook</td>
+            <td>@test.Type</td>
+            <td>@test.Mark</td>
+            <td>@test.Started</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Questions</h2>
+<div>
+    @foreach(var q in Model.Questions) {
+        <div>
+            <p><span>@q.Question.Id</span> <strong>@q.Question.Rulebook:@q.Question.Type</strong> @Html.Raw(q.Question.Value) <em>(@q.Question.Information)</em></p>
+            <table>
+                <thead>
+                    <th>Id</th>
+                    <th>Correct</th>
+                    <th>Answer</th>
+                </thead>
+                <tbody>
+                    @foreach(var a in q.Answers) {
+                    <tr>
+                        <td>@a.Id</td>
+                        <td>@a.Correct</td>
+                        <td>@Html.Raw(a.Value)</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

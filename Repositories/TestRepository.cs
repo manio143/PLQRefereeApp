@@ -40,6 +40,11 @@ namespace PLQRefereeApp
             return Context.Tests.Where(t => t.UserId == user.Id);
         }
 
+        public IEnumerable<Test> GetAllTest()
+        {
+            return Context.Tests;
+        }
+
         public void MarkAnswer(int testId, int questionId, int answerId)
         {
             if (!Context.Tests.Any(t => t.Id == testId))
