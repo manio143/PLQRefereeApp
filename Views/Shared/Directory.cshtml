@@ -23,23 +23,17 @@
                 <td><a href="/profile/@user.Id">@user.Surname</a></td>
                 <td>@user.Team</td>
                 <td>
-                    @if (user.ArIrdp == true) {
-                        <span style="color:green">✔</span>
-                    } else if (user.IsArCertified){
+                    @if (user.IsArCertified){
                         <span>✓</span>
                     }
                 </td>
                 <td>
-                    @if (user.SrIrdp == true) {
-                        <span style="color:green">✔</span>
-                    } else if (user.IsSrCertified){
+                    @if (user.IsSrCertified){
                         <span>✓</span>
                     }
                 </td>
                 <td>
-                    @if (user.HrIrdp == true) {
-                        <span style="color:green">✔</span>
-                    } else if (user.IsHrCertified){
+                    @if (user.IsHrCertified){
                         <span>✓</span>
                     }
                 </td>
@@ -48,4 +42,3 @@
     </tbody>
 </table>
 <p>✓ - zaliczony test</p>
-<p><span style="color:green">✔</span> - zaliczony test na portalu IRDP</p>

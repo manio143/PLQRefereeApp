@@ -84,10 +84,8 @@ namespace PLQRefereeApp
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-            }
+
+            app.UseStatusCodePagesWithRedirects("/error/{0}");
 
             app.UseSession();
 

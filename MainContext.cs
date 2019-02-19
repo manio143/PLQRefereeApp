@@ -53,6 +53,11 @@ namespace PLQRefereeApp
                     .HasMaxLength(120)
                     .HasDefaultValueSql("''");
 
+                entity.Property(e => e.Rulebook)
+                    .HasColumnName("rulebook")
+                    .HasColumnType("int")
+                    .HasDefaultValueSql("'0'");
+
                 entity.Property(e => e.Value)
                     .IsRequired()
                     .HasColumnName("question")
@@ -106,6 +111,18 @@ namespace PLQRefereeApp
                 entity.Property(e => e.Started)
                     .HasColumnName("started")
                     .HasColumnType("datetime");
+
+
+                entity.Property(e => e.IQA)
+                    .HasColumnName("iqa")
+                    .HasColumnType("boolean")
+                    .HasDefaultValueSql("'0'");
+
+                
+                entity.Property(e => e.Rulebook)
+                    .HasColumnName("rulebook")
+                    .HasColumnType("int")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Type)
                     .IsRequired()
@@ -166,11 +183,6 @@ namespace PLQRefereeApp
                     .HasColumnName("ar")
                     .HasColumnType("int(11)");
 
-                entity.Property(e => e.ArIrdp)
-                    .HasColumnName("arIRDP")
-                    .HasColumnType("boolean")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.Arcooldown)
                     .HasColumnName("arcooldown")
                     .HasColumnType("datetime");
@@ -178,11 +190,6 @@ namespace PLQRefereeApp
                 entity.Property(e => e.Hr)
                     .HasColumnName("hr")
                     .HasColumnType("int(11)");
-
-                entity.Property(e => e.HrIrdp)
-                    .HasColumnName("hrIRDP")
-                    .HasColumnType("boolean")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.HrPayment)
                     .HasColumnName("hrPayment")
@@ -201,11 +208,6 @@ namespace PLQRefereeApp
                 entity.Property(e => e.Sr)
                     .HasColumnName("sr")
                     .HasColumnType("int(11)");
-
-                entity.Property(e => e.SrIrdp)
-                    .HasColumnName("srIRDP")
-                    .HasColumnType("boolean")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Srcooldown)
                     .HasColumnName("srcooldown")

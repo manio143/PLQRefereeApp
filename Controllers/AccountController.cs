@@ -22,16 +22,16 @@ namespace PLQRefereeApp
         {
             var user = UserRepository.GetUser(id);
             var data = UserRepository.GetUserData(id);
-            var arCerts = TestRepository.GetTestsFor(user).Where(t => t.Mark >= 80 && t.Type == "AR")
-                            .Select(t => t.Rulebook).ToArray();
-            var srCerts = TestRepository.GetTestsFor(user).Where(t => t.Mark >= 80 && t.Type == "SR")
-                            .Select(t => t.Rulebook).ToArray();
-            var hrCerts = TestRepository.GetTestsFor(user).Where(t => t.Mark >= 80 && t.Type == "HR")
-                            .Select(t => t.Rulebook).ToArray();
+            var arCerts = TestRepository.GetTestsFor(user).Where(t => (t.Mark >= 80 || t.IQA) && t.Type == "AR")
+                            .Select(t => t.Rulebook).Distinct().OrderByDescending(x => x).ToArray();
+            var srCerts = TestRepository.GetTestsFor(user).Where(t => (t.Mark >= 80 || t.IQA) && t.Type == "SR")
+                            .Select(t => t.Rulebook).Distinct().OrderByDescending(x => x).ToArray();
+            var hrCerts = TestRepository.GetTestsFor(user).Where(t => (t.Mark >= 80 || t.IQA) && t.Type == "HR")
+                            .Select(t => t.Rulebook).Distinct().OrderByDescending(x => x).ToArray();
+            ViewBag.ARCerts = arCerts.String();
+            ViewBag.SRCerts = srCerts.String();
+            ViewBag.HRCerts = hrCerts.String();
             ViewBag.Options = false;
-            ViewBag.ARCerts = arCerts;
-            ViewBag.SRCerts = srCerts;
-            ViewBag.HRCerts = hrCerts;
             return View("Account", data);
         }
 
@@ -42,6 +42,15 @@ namespace PLQRefereeApp
             var user = HttpContext.Session.GetUser(UserRepository);
             var data = UserRepository.GetUserData(user);
             var tests = TestRepository.GetTestsFor(user).Where(t => t.Finished != null);
+            var arCerts = TestRepository.GetTestsFor(user).Where(t => (t.Mark >= 80 || t.IQA) && t.Type == "AR")
+                            .Select(t => t.Rulebook).Distinct().OrderByDescending(x => x).ToArray();
+            var srCerts = TestRepository.GetTestsFor(user).Where(t => (t.Mark >= 80 || t.IQA) && t.Type == "SR")
+                            .Select(t => t.Rulebook).Distinct().OrderByDescending(x => x).ToArray();
+            var hrCerts = TestRepository.GetTestsFor(user).Where(t => (t.Mark >= 80 || t.IQA) && t.Type == "HR")
+                            .Select(t => t.Rulebook).Distinct().OrderByDescending(x => x).ToArray();
+            ViewBag.ARCerts = arCerts.String();
+            ViewBag.SRCerts = srCerts.String();
+            ViewBag.HRCerts = hrCerts.String();
             ViewBag.Tests = tests;
             ViewBag.Options = true;
             return View("Account", data);

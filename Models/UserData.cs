@@ -17,14 +17,11 @@ namespace PLQRefereeApp
         public DateTime? Arcooldown { get; set; }
         public DateTime? Srcooldown { get; set; }
         public DateTime? Hrcooldown { get; set; }
-        public bool? ArIrdp { get; set; }
-        public bool? SrIrdp { get; set; }
-        public bool? HrIrdp { get; set; }
         public bool? HrPayment { get; set; }
 
-        public bool IsArCertified => Ar != null || ArIrdp == true;
-        public bool IsSrCertified => Sr != null || SrIrdp == true;
-        public bool IsHrCertified => Hr != null || HrIrdp == true;
+        public bool IsArCertified => Ar != null;
+        public bool IsSrCertified => Sr != null;
+        public bool IsHrCertified => Hr != null;
         public bool IsCertified => IsArCertified || IsSrCertified || IsHrCertified;
         public bool IsCertifiedOf(QuestionType type)
         {

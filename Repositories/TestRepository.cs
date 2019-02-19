@@ -31,7 +31,7 @@ namespace PLQRefereeApp
         }
         public void RemoveUnusedTests()
         {
-            Context.Tests.RemoveRange(Context.Tests.Where(t => t.Started == null && t.Created < DateTime.Now.AddDays(-1)));
+            Context.Tests.RemoveRange(Context.Tests.Where(t => !t.IQA && t.Started == null && t.Created < DateTime.Now.AddDays(-1)));
             Context.SaveChanges();
         }
 
@@ -87,7 +87,7 @@ namespace PLQRefereeApp
 
         public void MarkUnmarkedTests()
         {
-            foreach (var t in Context.Tests.Where(t => t.Mark == null && t.Started != null && t.Started < DateTime.Now.AddHours(-1)))
+            foreach (var t in Context.Tests.Where(t => !t.IQA && t.Mark == null && t.Started != null && t.Started < DateTime.Now.AddHours(-1)))
                 MarkTest(t);
         }
 

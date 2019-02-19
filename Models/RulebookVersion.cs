@@ -1,7 +1,7 @@
 namespace PLQRefereeApp {
     public enum RulebookVersion {
-        Undefined,
-        Rulebook1618,
-        Rulebook1820
+        Undefined = 0,
+        RB1618 = 1,
+        RB1820 = 2
     }
 }

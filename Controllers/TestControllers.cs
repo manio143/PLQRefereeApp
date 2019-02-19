@@ -103,6 +103,31 @@ namespace PLQRefereeApp
             return Json(PrepareQuestions(test, markWrongAnswer: true));
         }
 
+        [Authorize]
+        [HttpPost("/test-iqa")]
+        [ValidateAntiForgeryToken]
+        public IActionResult TestIQA(string type, int userId)
+        {
+            var currentUser = HttpContext.Session.GetUser(UserRepository);
+            if(!currentUser.Administrator)
+                return Forbid();
+            try
+            {
+                var user = UserRepository.GetUser(userId);
+                var test = new Test();
+                test.IQA = true;
+                test.UserId = userId;
+                test.Rulebook = CurrentRulebookVersion;
+                test.Type = type.ToQuestionType().ToString();
+                test.Questions = Enumerable.Empty<Question>();
+                TestRepository.AddTest(test);
+                UserRepository.AddCertificate(user, test.Type.ToQuestionType(), test);
+                return LocalRedirect("/admin");
+            } catch(Exception e) {
+                return LocalRedirect("/admin?error="+ System.Net.WebUtility.UrlEncode(e.Message));
+            }
+        }
+
         private object PrepareQuestions(Test test, bool markWrongAnswer)
         {
             return new
@@ -150,7 +175,7 @@ namespace PLQRefereeApp
             return test;
         }
 
-        public const RulebookVersion CurrentRulebookVersion = RulebookVersion.Rulebook1820;
+        public const RulebookVersion CurrentRulebookVersion = RulebookVersion.RB1820;
 
         private Test NewTest(QuestionType type)
         {
@@ -170,6 +195,7 @@ namespace PLQRefereeApp
             var test = new Test();
             test.Questions = questions;
             test.Type = type.ToString();
+            test.IQA = false;
             test.Rulebook = CurrentRulebookVersion;
             return test;
         }

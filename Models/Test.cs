@@ -10,6 +10,7 @@ namespace PLQRefereeApp
     {
         public int Id { get; set; }
         public int UserId { get; set; }
+        public bool IQA { get; set; }
         public DateTime? Started { get; set; }
         public DateTime? Finished { get; set; }
         public DateTime Created { get; set; }

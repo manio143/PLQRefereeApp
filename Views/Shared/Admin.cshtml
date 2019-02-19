@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Admin";
+}
+
+<h1>Admin</h1>
+
+@if(!String.IsNullOrEmpty((string)ViewData["Error"])) {
+    <span class="text-danger">@ViewData["Error"]</span>
+}
+
+<h2>IQA</h2>
+<form method="POST" action="/test-iqa">
+    <div>
+        <label>Type</label><input type="text" name="type">
+    </div>
+    <div>
+        <label>User id</label><input type="number" name="userId">
+    </div>
+    @Html.AntiForgeryToken()
+    <input type="submit">
+</form>
+
