@@ -123,7 +123,7 @@ namespace PLQRefereeApp
             var passphrase = BCrypt.Net.BCrypt.HashPassword(registerData.Password, 13); //2^13 iterations
 
             var user = new User { Email = registerData.Email, Passphrase = passphrase };
-            var userData = new UserData { Name = registerData.Name, Surname = registerData.Surname, Team = registerData.Surname };
+            var userData = new UserData { Name = registerData.Name, Surname = registerData.Surname, Team = registerData.Team };
 
             UserRepository.AddUser(user, userData);
 
