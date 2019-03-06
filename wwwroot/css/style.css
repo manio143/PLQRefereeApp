@@ -131,6 +131,12 @@ div.clock::after{
 .green {
     color: #0aa00a;
 }
+.violet {
+    color: purple;
+}
+.yellow {
+    color: darkorange;
+}
 
 .bold {
     font-weight: bold;

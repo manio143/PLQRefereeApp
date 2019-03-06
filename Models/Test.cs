@@ -38,7 +38,7 @@ namespace PLQRefereeApp
             switch (@this)
             {
                 case QuestionType.AR: return 25;
-                case QuestionType.SR: return 25;
+                case QuestionType.SR: return 20;
                 case QuestionType.HR: return 50;
                 default: throw new ArgumentException("Invalid value");
             }

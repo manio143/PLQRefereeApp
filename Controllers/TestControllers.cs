@@ -144,7 +144,7 @@ namespace PLQRefereeApp
                         correct = markWrongAnswer ? TestRepository.GetTestQuestionsFor(test).Where(tq => tq.QuestionId == q.Id).Select(tq => tq.AnswerId == a.Id && a.Correct == false).First() : false,
                         answer = a.Value
                     }).Scramble()
-                }),
+                }).Scramble(),
                 started = test.Started,
                 time = test.Type.ToQuestionType().Duration().TotalMinutes
             };
@@ -186,7 +186,7 @@ namespace PLQRefereeApp
                     questions = QuestionRepository.GetARQuestions(CurrentRulebookVersion).Scramble().Take(25).ToList();
                     break;
                 case QuestionType.SR:
-                    questions = QuestionRepository.GetSRQuestions(CurrentRulebookVersion).Scramble().Take(20).Concat(QuestionRepository.GetARQuestions(CurrentRulebookVersion).Scramble().Take(5)).Scramble().ToList();
+                    questions = QuestionRepository.GetSRQuestions(CurrentRulebookVersion).Scramble().Take(20).ToList();
                     break;
                 case QuestionType.HR:
                     questions = QuestionRepository.GetHRQuestions(CurrentRulebookVersion).Scramble().Take(50).ToList();
