@@ -15,6 +15,8 @@ RUN openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out 
 RUN openssl pkcs12 -export -out cert.pfx -inkey server.key -in server.crt -certfile server.crt -passout pass:${certPassword}
 
 RUN echo "Europe/Warsaw" > /etc/timezone
+RUN unlink /etc/localtime
+RUN ln -s /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
 
 EXPOSE 443/tcp
 
