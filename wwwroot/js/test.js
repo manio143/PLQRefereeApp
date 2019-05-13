@@ -167,7 +167,7 @@ function generateView(testData, root, submitAndClock) {
         let finishLabel = createElement("p", "finish-label");
         finishLabel.innerText = "Zakończyłeś test! Odpowiedziałeś poprawnie na " + testData.mark + "% pytań. Jest to " + (testData.mark >= 80 ? "ponad 80%, czyli zaliczyłeś ten test. Gratulacje!" : "poniżej 80%, czyli nie udało ci się zaliczyć testu.");
         let anotherLabel = createElement("p");
-        anotherLabel.innerText = "Poniżej znajdują się pytania, na które nie odpowiedziałeś poprawnie."
+        anotherLabel.innerText = "Poniżej znajdują się pytania, na które nie odpowiedziałeś poprawnie. Zaznaczone są twoje odpowiedzi, a pod nimi jest podpowiedź, gdzie w rulebooku znajdziesz te informacje."
         let buttonFinish = createElement("button");
         buttonFinish.innerText = "Powrót do portalu";
         buttonFinish.onclick = () => { window.location = "/account/details"; }
